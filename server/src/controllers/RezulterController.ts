@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import RezulterService from '../services/RezulterService';
+import { RezulterService } from '../services/RezulterService';
 import { sendResponse } from '../utils/responseHandler';
 
 // Zod schema for registration validation
@@ -11,16 +11,18 @@ const registerSchema = z.object({
 });
 
 export class RezulterController {
+  constructor(private rezulterService: RezulterService) {}
+
   /**
    * Registers a new Rezulter/Coordinator
    */
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // 1. Validate incoming request body
       const validatedData = registerSchema.parse(req.body);
 
       // 2. Pass to Service (Business Logic)
-      const { user, inviteToken } = await RezulterService.registerRezulter(validatedData);
+      const { user, inviteToken } = await this.rezulterService.registerRezulter(validatedData);
 
       // 3. Return Predictable JSON Structure
       sendResponse(res, 201, true, {
@@ -41,9 +43,9 @@ export class RezulterController {
   /**
    * Fetch all rezulters (Admin only)
    */
-  async getAllRezulters(req: Request, res: Response, next: NextFunction): Promise<void> {
+  getAllRezulters = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const rezulters = await RezulterService.getAllRezulters();
+      const rezulters = await this.rezulterService.getAllRezulters()
       sendResponse(res, 200, true, rezulters);
     } catch (error: any) {
       next(error);
@@ -53,20 +55,11 @@ export class RezulterController {
   /**
    * Create a new rezulter (Admin only)
    */
-  async createRezulter(req: Request, res: Response, next: NextFunction): Promise<void> {
+  createRezulter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = registerSchema.parse(req.body);
-      const newUser = await RezulterService.createRezulterByAdmin(validatedData);
+      const safeUser = await this.rezulterService.createRezulterByAdmin(validatedData);
       
-      const safeUser = {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        isActive: newUser.isActive,
-        createdAt: (newUser as any).createdAt
-      };
-
       sendResponse(res, 201, true, safeUser);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -81,15 +74,13 @@ export class RezulterController {
   /**
    * Toggle rezulter status (Admin only)
    */
-  async toggleStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  toggleStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
-      const updatedUser = await RezulterService.toggleStatus(id);
+      const updatedUser = await this.rezulterService.toggleStatus(id);
       sendResponse(res, 200, true, updatedUser);
     } catch (error: any) {
       next(error);
     }
   }
 }
-
-export default new RezulterController();

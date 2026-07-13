@@ -37,7 +37,10 @@ export class CandidateRepository {
    * Fetch all Candidates
    */
   async findAll(): Promise<ICandidate[]> {
-    return await Candidate.find().sort({ createdAt: -1 });
+    let page:number = 2;
+    let numberOfData:number = 1; 
+    let currentData:number = page*numberOfData;
+    return await Candidate.find().sort({ createdAt: -1 }).skip((page - 1) * numberOfData).limit(numberOfData);
   }
 
   /**
@@ -51,5 +54,3 @@ export class CandidateRepository {
     return await candidate.save();
   }
 }
-
-export default new CandidateRepository();

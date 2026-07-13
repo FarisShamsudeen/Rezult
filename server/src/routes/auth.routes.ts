@@ -1,7 +1,16 @@
 import { Router } from 'express';
-import authController from '../controllers/AuthController';
+import { AuthController } from '../controllers/AuthController';
+import { AuthService } from '../services/AuthService';
+import { CandidateRepository } from '../repositories/CandidateRepository';
+import { RezulterRepository } from '../repositories/RezulterRepository';
 
 const router = Router();
+
+// Composition Root
+const candidateRepository = new CandidateRepository();
+const rezulterRepository = new RezulterRepository();
+const authService = new AuthService(candidateRepository, rezulterRepository);
+const authController = new AuthController(authService);
 
 router.post('/signup', authController.register);
 router.post('/verify-otp', authController.verifyOTP);

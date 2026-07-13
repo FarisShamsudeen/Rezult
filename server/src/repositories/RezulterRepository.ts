@@ -1,4 +1,5 @@
 import { Rezulter, IRezulter } from '../models/Rezulter';
+import { UserRole } from '../enums';
 import { Types } from 'mongoose';
 
 export class RezulterRepository {
@@ -8,7 +9,7 @@ export class RezulterRepository {
   async createRezulter(userData: Partial<IRezulter>): Promise<IRezulter> {
     const newRezulter = new Rezulter({
       ...userData,
-      role: userData.role || 'REZULTER',
+      role: userData.role || UserRole.REZULTER,
     });
     return await newRezulter.save();
   }
@@ -23,8 +24,8 @@ export class RezulterRepository {
   /**
    * Finds all Rezulters
    */
-  async findAll(): Promise<IRezulter[]> {
-    return await Rezulter.find({ role: 'REZULTER' }).sort({ createdAt: -1 });
+  async getAllRezulters() {
+    return await Rezulter.find({ role: UserRole.REZULTER }).sort({ createdAt: -1 });
   }
 
   /**
@@ -50,5 +51,3 @@ export class RezulterRepository {
     return await rezulter.save();
   }
 }
-
-export default new RezulterRepository();

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import CandidateService from '../services/CandidateService';
+import { CandidateService } from '../services/CandidateService';
 import { sendResponse } from '../utils/responseHandler';
 
 const candidateSchema = z.object({
@@ -10,35 +10,22 @@ const candidateSchema = z.object({
 });
 
 export class CandidateController {
-  async getAllCandidates(req: Request, res: Response, next: NextFunction): Promise<void> {
+  constructor(private candidateService: CandidateService) {}
+
+  getAllCandidates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const candidates = await CandidateService.getAllCandidates();
-      const safeCandidates = candidates.map(c => ({
-        _id: c._id,
-        name: c.name,
-        email: c.email,
-        isActive: c.isActive,
-        createdAt: (c as any).createdAt
-      }));
+      const safeCandidates = await this.candidateService.getAllCandidates();
       sendResponse(res, 200, true, safeCandidates);
     } catch (error: any) {
       next(error);
     }
   }
 
-  async createCandidate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  createCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = candidateSchema.parse(req.body);
-      const newUser = await CandidateService.createCandidateByAdmin(validatedData);
+      const safeUser = await this.candidateService.createCandidateByAdmin(validatedData);
       
-      const safeUser = {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        isActive: newUser.isActive,
-        createdAt: (newUser as any).createdAt
-      };
-
       sendResponse(res, 201, true, safeUser);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -50,15 +37,13 @@ export class CandidateController {
     }
   }
 
-  async toggleStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  toggleStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const id = req.params.id as string;
-      const updatedUser = await CandidateService.toggleStatus(id);
+      const updatedUser = await this.candidateService.toggleStatus(id);
       sendResponse(res, 200, true, updatedUser);
     } catch (error: any) {
       next(error);
     }
   }
 }
-
-export default new CandidateController();

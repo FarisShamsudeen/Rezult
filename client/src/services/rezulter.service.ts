@@ -10,7 +10,7 @@ export interface Rezulter {
 }
 
 export const rezulterService = {
-  getAll: async () => {
+  getAllPaginated: async () => {
     const response = await api.get('/rezulters');
     return response.data;
   },

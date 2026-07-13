@@ -1,14 +1,28 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import RezulterRepository from '../repositories/RezulterRepository';
+import { RezulterRepository } from '../repositories/RezulterRepository';
 import { IRezulter } from '../models/Rezulter';
+import { UserRole, AuthProvider } from '../enums';
 
 export class RezulterService {
+  constructor(private rezulterRepository: RezulterRepository) {}
+
+  private shapeRezulter(rezulter: IRezulter) {
+    return {
+      _id: rezulter._id,
+      name: rezulter.name,
+      email: rezulter.email,
+      role: rezulter.role,
+      isActive: rezulter.isActive,
+      createdAt: (rezulter as any).createdAt,
+    };
+  }
+
   /**
    * Handles registering a new Coordinator/Rezulter workspace.
    */
-  async registerRezulter(data: any): Promise<{ user: Partial<IRezulter>, inviteToken: string }> {
-    const existingUser = await RezulterRepository.findByEmail(data.email);
+  async registerRezulter(data: any) {
+    const existingUser = await this.rezulterRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -18,42 +32,33 @@ export class RezulterService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     // Create the Rezulter
-    const newUser = await RezulterRepository.createRezulter({
+    const newUser = await this.rezulterRepository.createRezulter({
       name: data.name,
       email: data.email,
       passwordHash,
-      // They are a REZULTER, so they can have candidateIds etc.
+      role: UserRole.REZULTER,
       candidateIds: [],
     });
 
     // Generate a unique Secret Join Code (for Entrants/Candidates)
-    // Could also store this in a Workspace model or directly on the User if there was a field for it.
-    // We will just generate it here to demonstrate the service logic.
     const inviteToken = crypto.randomBytes(4).toString('hex').toUpperCase();
 
-    // Prepare safe user object (omit password)
-    const safeUser = {
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    };
-
-    return { user: safeUser, inviteToken };
+    return { user: this.shapeRezulter(newUser), inviteToken };
   }
 
   /**
    * Fetch all rezulters (for Super Admin)
    */
-  async getAllRezulters(): Promise<IRezulter[]> {
-    return await RezulterRepository.findAll();
+  async getAllRezulters() {
+    const rezulters = await this.rezulterRepository.getAllRezulters();
+    return rezulters.map(this.shapeRezulter.bind(this));
   }
 
   /**
    * Create a verified Rezulter directly (for Super Admin)
    */
-  async createRezulterByAdmin(data: any): Promise<IRezulter> {
-    const existingUser = await RezulterRepository.findByEmail(data.email);
+  async createRezulterByAdmin(data: any) {
+    const existingUser = await this.rezulterRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -61,26 +66,24 @@ export class RezulterService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
 
-    const newUser = await RezulterRepository.createRezulter({
+    const newUser = await this.rezulterRepository.createRezulter({
       name: data.name,
       email: data.email,
       passwordHash,
-      role: 'REZULTER',
+      role: UserRole.REZULTER,
       isEmailVerified: true, // Auto-verified since admin created
-      authProvider: 'local',
+      authProvider: AuthProvider.LOCAL,
       candidateIds: [],
     });
 
-    return newUser;
+    return this.shapeRezulter(newUser);
   }
 
-  async toggleStatus(id: string): Promise<IRezulter> {
-    const updatedUser = await RezulterRepository.toggleStatus(id);
+  async toggleStatus(id: string) {
+    const updatedUser = await this.rezulterRepository.toggleStatus(id);
     if (!updatedUser) {
       throw new Error('Rezulter not found.');
     }
-    return updatedUser;
+    return this.shapeRezulter(updatedUser);
   }
 }
-
-export default new RezulterService();

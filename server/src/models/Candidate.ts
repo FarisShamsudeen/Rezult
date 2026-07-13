@@ -1,4 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
+import { AuthProvider } from '../enums';
 
 export interface ICandidate extends Document {
   name: string;
@@ -7,7 +8,7 @@ export interface ICandidate extends Document {
   phoneNumber?: string;
   isActive: boolean;
   isEmailVerified: boolean;
-  authProvider: 'local' | 'google';
+  authProvider: AuthProvider;
   profileImage?: string;
 }
 
@@ -18,7 +19,7 @@ const CandidateSchema = new Schema<ICandidate>({
   phoneNumber: { type: String },
   isActive: { type: Boolean, default: true },
   isEmailVerified: { type: Boolean, default: false },
-  authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+  authProvider: { type: String, enum: Object.values(AuthProvider), default: AuthProvider.LOCAL },
   profileImage: { type: String }
 }, { timestamps: true });
 

@@ -1,10 +1,9 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth.middleware';
 import { sendResponse } from '../utils/responseHandler';
+import { UserRole } from '../enums';
 
-export type AppRole = 'candidate' | 'rezulter' | 'super_admin';
-
-export const requireRole = (requiredRoles: AppRole | AppRole[]) => {
+export const requireRole = (requiredRoles: UserRole | UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !req.user.role) {
       sendResponse(res, 401, false, undefined, 'Access denied. Not authenticated or missing role.');

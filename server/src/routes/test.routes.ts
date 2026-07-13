@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { verifyToken, AuthRequest } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { sendResponse } from '../utils/responseHandler';
+import { UserRole } from '../enums';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ router.get('/protected', verifyToken, (req: AuthRequest, res: Response) => {
 });
 
 // Test RBAC specific route
-router.get('/rezulter-only', verifyToken, requireRole('rezulter'), (req: AuthRequest, res: Response) => {
+router.get('/rezulter-only', verifyToken, requireRole(UserRole.REZULTER), (req: AuthRequest, res: Response) => {
     sendResponse(res, 200, true, { 
         message: 'You are an authorized Rezulter!'
     });

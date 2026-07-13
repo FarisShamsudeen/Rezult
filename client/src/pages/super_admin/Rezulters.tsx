@@ -8,6 +8,7 @@ export function SuperAdminRezulters() {
   const [rezulters, setRezulters] = useState<Rezulter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,7 +25,7 @@ export function SuperAdminRezulters() {
   const fetchRezulters = async () => {
     try {
       setIsLoading(true);
-      const response = await rezulterService.getAll();
+      const response = await rezulterService.getAllPaginated();
       // Handle different possible payload structures safely
       let dataArray = [];
       if (Array.isArray(response)) {

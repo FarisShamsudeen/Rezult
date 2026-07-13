@@ -1,10 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
-import RezulterRepository from '../repositories/RezulterRepository';
-import CandidateRepository from '../repositories/CandidateRepository';
+import { RezulterRepository } from '../repositories/RezulterRepository';
+import { CandidateRepository } from '../repositories/CandidateRepository';
 import { OTP } from '../models/OTP';
 import { sendEmail } from '../utils/emailService';
+import { UserRole, AuthProvider, OtpPurpose } from '../enums';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback_access_secret';
@@ -21,9 +22,14 @@ const generateTokens = (user: any, role: string) => {
 };
 
 export class AuthService {
-  async register(role: 'candidate' | 'rezulter', data: any) {
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
-    const OtherRepository = role === 'candidate' ? RezulterRepository : CandidateRepository;
+  constructor(
+    private candidateRepository: CandidateRepository,
+    private rezulterRepository: RezulterRepository
+  ) {}
+
+  async register(role: UserRole, data: any) {
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const OtherRepository = role === UserRole.CANDIDATE ? this.rezulterRepository : this.candidateRepository;
     
     // Check if user exists in the current role
     const existingUser = await Repository.findByEmail(data.email);
@@ -47,14 +53,14 @@ export class AuthService {
       const userData = {
         ...restData,
         passwordHash,
-        authProvider: 'local' as 'local' | 'google',
+        authProvider: AuthProvider.LOCAL,
         isEmailVerified: false
       };
       
-      if (role === 'candidate') {
-        user = await CandidateRepository.createCandidate(userData);
+      if (role === UserRole.CANDIDATE) {
+        user = await this.candidateRepository.createCandidate(userData);
       } else {
-        user = await RezulterRepository.createRezulter(userData);
+        user = await this.rezulterRepository.createRezulter(userData);
       }
     }
 
@@ -66,8 +72,8 @@ export class AuthService {
     await OTP.create({
       email: data.email,
       otp,
-      role,
-      purpose: 'registration'
+      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
+      purpose: OtpPurpose.REGISTRATION
     });
 
     await sendEmail(
@@ -79,20 +85,20 @@ export class AuthService {
     return { message: 'OTP sent to email. Please verify.' };
   }
 
-  async verifyOTP(role: 'candidate' | 'rezulter', email: string, otp: string, purpose: 'registration' | 'forgot_password') {
-    const otpRecord = await OTP.findOne({ email, otp, role, purpose });
+  async verifyOTP(role: UserRole, email: string, otp: string, purpose: OtpPurpose) {
+    const otpRecord = await OTP.findOne({ email, otp, role: role as (UserRole.CANDIDATE | UserRole.REZULTER), purpose });
     if (!otpRecord) {
       throw new Error('Invalid or expired OTP');
     }
 
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    if (purpose === 'registration') {
+    if (purpose === OtpPurpose.REGISTRATION) {
       user.isEmailVerified = true;
       await user.save();
     }
@@ -100,7 +106,7 @@ export class AuthService {
     // Delete the OTP record as it's been used
     await OTP.deleteOne({ _id: otpRecord._id });
 
-    if (purpose === 'registration') {
+    if (purpose === OtpPurpose.REGISTRATION) {
       const { accessToken, refreshToken } = generateTokens(user, role);
       return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role } };
     }
@@ -110,11 +116,11 @@ export class AuthService {
     return { message: 'OTP verified successfully' };
   }
 
-  async login(role: 'candidate' | 'rezulter', email: string, password: string) {
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
+  async login(role: UserRole, email: string, password: string) {
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
     const user = await Repository.findByEmail(email);
 
-    if (!user || user.authProvider !== 'local') {
+    if (!user || user.authProvider !== AuthProvider.LOCAL) {
       throw new Error('Invalid credentials');
     }
 
@@ -132,7 +138,7 @@ export class AuthService {
     return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: actualRole } };
   }
 
-  async googleAuth(role: 'candidate' | 'rezulter', credential: string) {
+  async googleAuth(role: UserRole, credential: string) {
     // With useGoogleLogin implicit flow, 'credential' is an access token
     let payload: any;
     try {
@@ -153,8 +159,8 @@ export class AuthService {
     }
 
     const { email, name, picture } = payload;
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
-    const OtherRepository = role === 'candidate' ? RezulterRepository : CandidateRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const OtherRepository = role === UserRole.CANDIDATE ? this.rezulterRepository : this.candidateRepository;
     
     let user = await Repository.findByEmail(email);
     
@@ -169,15 +175,15 @@ export class AuthService {
       const userData = {
         name: name || 'User',
         email,
-        authProvider: 'google' as 'local' | 'google',
+        authProvider: AuthProvider.GOOGLE,
         isEmailVerified: true, // Google emails are pre-verified
         profileImage: picture
       };
       
-      if (role === 'candidate') {
-        user = await CandidateRepository.createCandidate(userData);
+      if (role === UserRole.CANDIDATE) {
+        user = await this.candidateRepository.createCandidate(userData);
       } else {
-        user = await RezulterRepository.createRezulter(userData);
+        user = await this.rezulterRepository.createRezulter(userData);
       }
     }
 
@@ -189,15 +195,15 @@ export class AuthService {
     return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role } };
   }
 
-  async forgotPassword(role: 'candidate' | 'rezulter', email: string) {
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
+  async forgotPassword(role: UserRole, email: string) {
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    if (user.authProvider === 'google') {
+    if (user.authProvider === AuthProvider.GOOGLE) {
       throw new Error('Please login with Google');
     }
 
@@ -209,8 +215,8 @@ export class AuthService {
     await OTP.create({
       email,
       otp,
-      role,
-      purpose: 'forgot_password'
+      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
+      purpose: OtpPurpose.FORGOT_PASSWORD
     });
 
     await sendEmail(
@@ -222,12 +228,12 @@ export class AuthService {
     return { message: 'Password reset OTP sent to email' };
   }
 
-  async resetPassword(role: 'candidate' | 'rezulter', email: string, newPassword: string) {
+  async resetPassword(role: UserRole, email: string, newPassword: string) {
     // Note: ensure OTP was verified before this in actual flow, or just verify OTP again here if passed together.
     // Assuming the user verified OTP, and then we just reset.
     // Alternatively, the frontend sends email & newPassword after verifying OTP.
     // For security, it's better to pass a resetToken that was given during verifyOTP, but we can trust the flow or send OTP here too.
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
@@ -253,7 +259,7 @@ export class AuthService {
     }
 
     const { id, role } = decoded;
-    const Repository = role === 'candidate' ? CandidateRepository : RezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
     const user = await Repository.findById(id);
 
     if (!user) {
@@ -271,4 +277,3 @@ export class AuthService {
   }
 }
 
-export default new AuthService();

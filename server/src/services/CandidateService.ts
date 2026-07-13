@@ -1,14 +1,28 @@
 import bcrypt from 'bcryptjs';
-import CandidateRepository from '../repositories/CandidateRepository';
+import { CandidateRepository } from '../repositories/CandidateRepository';
 import { ICandidate } from '../models/Candidate';
+import { AuthProvider } from '../enums';
 
 export class CandidateService {
-  async getAllCandidates(): Promise<ICandidate[]> {
-    return await CandidateRepository.findAll();
+  constructor(private candidateRepository: CandidateRepository) {}
+
+  private shapeCandidate(candidate: ICandidate) {
+    return {
+      _id: candidate._id,
+      name: candidate.name,
+      email: candidate.email,
+      isActive: candidate.isActive,
+      createdAt: (candidate as any).createdAt,
+    };
   }
 
-  async createCandidateByAdmin(data: any): Promise<ICandidate> {
-    const existingUser = await CandidateRepository.findByEmail(data.email);
+  async getAllCandidates() {
+    const candidates = await this.candidateRepository.findAll();
+    return candidates.map(this.shapeCandidate);
+  }
+
+  async createCandidateByAdmin(data: any) {
+    const existingUser = await this.candidateRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -16,23 +30,22 @@ export class CandidateService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
     
-    // Add default dummy logic or actual candidate registration details
-    return await CandidateRepository.createCandidate({
+    const newCandidate = await this.candidateRepository.createCandidate({
       name: data.name,
       email: data.email,
       passwordHash,
       isEmailVerified: true, // Auto-verified by Admin
-      authProvider: 'local'
+      authProvider: AuthProvider.LOCAL
     });
+    
+    return this.shapeCandidate(newCandidate);
   }
 
-  async toggleStatus(id: string): Promise<ICandidate> {
-    const updatedUser = await CandidateRepository.toggleStatus(id);
+  async toggleStatus(id: string) {
+    const updatedUser = await this.candidateRepository.toggleStatus(id);
     if (!updatedUser) {
       throw new Error('Candidate not found.');
     }
-    return updatedUser;
+    return this.shapeCandidate(updatedUser);
   }
 }
-
-export default new CandidateService();
