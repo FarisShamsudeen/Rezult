@@ -49,9 +49,12 @@ export class RezulterService {
   /**
    * Fetch all rezulters (for Super Admin)
    */
-  async getAllRezulters() {
-    const rezulters = await this.rezulterRepository.getAllRezulters();
-    return rezulters.map(this.shapeRezulter.bind(this));
+  async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
+    const result = await this.rezulterRepository.getAllRezulters(options);
+    return {
+      data: result.data.map((rezulter) => this.shapeRezulter(rezulter as IRezulter)),
+      pagination: result.pagination
+    };
   }
 
   /**
@@ -85,5 +88,9 @@ export class RezulterService {
       throw new Error('Rezulter not found.');
     }
     return this.shapeRezulter(updatedUser);
+  }
+
+  async getStats() {
+    return await this.rezulterRepository.getStats();
   }
 }

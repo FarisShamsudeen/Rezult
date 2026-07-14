@@ -10,8 +10,8 @@ export interface Candidate {
 }
 
 export const candidateService = {
-  getAll: async () => {
-    const response = await api.get('/candidates');
+  getAll: async (params?: { page?: number; limit?: number; search?: string; isActive?: boolean; sortField?: string; sortOrder?: string }) => {
+    const response = await api.get('/candidates', { params });
     return response.data;
   },
 
@@ -22,6 +22,11 @@ export const candidateService = {
 
   toggleStatus: async (id: string) => {
     const response = await api.patch(`/candidates/${id}/toggle-status`);
+    return response.data;
+  },
+  
+  getStats: async () => {
+    const response = await api.get('/candidates/stats');
     return response.data;
   }
 };

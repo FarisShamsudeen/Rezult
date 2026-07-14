@@ -45,8 +45,20 @@ export class RezulterController {
    */
   getAllRezulters = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const rezulters = await this.rezulterService.getAllRezulters()
-      sendResponse(res, 200, true, rezulters);
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
+      const search = (req.query.search as string) || '';
+      
+      let isActive: boolean | undefined = undefined;
+      if (req.query.isActive !== undefined) {
+        isActive = req.query.isActive === 'true';
+      }
+      
+      const sortField = (req.query.sortField as string) || undefined;
+      const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
+
+      const result = await this.rezulterService.getAllRezulters({ page, limit, search, isActive, sortField, sortOrder });
+      sendResponse(res, 200, true, result);
     } catch (error: any) {
       next(error);
     }
@@ -76,11 +88,20 @@ export class RezulterController {
    */
   toggleStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const id = req.params.id as string;
-      const updatedUser = await this.rezulterService.toggleStatus(id);
-      sendResponse(res, 200, true, updatedUser);
+      const rezulterId = req.params.id as string;
+      const updatedRezulter = await this.rezulterService.toggleStatus(rezulterId);
+      sendResponse(res, 200, true, updatedRezulter, 'Rezulter status toggled successfully.');
     } catch (error: any) {
       next(error);
     }
-  }
+  };
+
+  getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await this.rezulterService.getStats();
+      sendResponse(res, 200, true, stats, 'Rezulter stats fetched successfully.');
+    } catch (error: any) {
+      next(error);
+    }
+  };
 }

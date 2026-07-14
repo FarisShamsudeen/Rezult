@@ -34,13 +34,42 @@ export class CandidateRepository {
   }
 
   /**
-   * Fetch all Candidates
+   * Fetch all Candidates with pagination, search, sorting, and filtering
    */
-  async findAll(): Promise<ICandidate[]> {
-    let page:number = 2;
-    let numberOfData:number = 1; 
-    let currentData:number = page*numberOfData;
-    return await Candidate.find().sort({ createdAt: -1 }).skip((page - 1) * numberOfData).limit(numberOfData);
+  async findAll(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: ICandidate[]; pagination: any }> {
+    const { page, limit, search, isActive, sortField = 'createdAt', sortOrder = 'desc' } = options;
+    const query: any = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (isActive !== undefined) {
+      query.isActive = isActive;
+    }
+
+    const skip = (page - 1) * limit;
+    
+    const sortParams: any = {};
+    sortParams[sortField] = sortOrder === 'asc' ? 1 : -1;
+
+    const [data, totalItems] = await Promise.all([
+      Candidate.find(query).sort(sortParams).skip(skip).limit(limit),
+      Candidate.countDocuments(query)
+    ]);
+
+    return {
+      data,
+      pagination: {
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        currentPage: page,
+        pageSize: limit
+      }
+    };
   }
 
   /**
@@ -52,5 +81,17 @@ export class CandidateRepository {
     
     candidate.isActive = !candidate.isActive;
     return await candidate.save();
+  }
+
+  /**
+   * Get Candidate Statistics
+   */
+  async getStats() {
+    const [total, active, suspended] = await Promise.all([
+      Candidate.countDocuments(),
+      Candidate.countDocuments({ isActive: true }),
+      Candidate.countDocuments({ isActive: false })
+    ]);
+    return { total, active, suspended };
   }
 }

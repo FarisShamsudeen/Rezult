@@ -14,6 +14,7 @@ const candidateService = new CandidateService(candidateRepository);
 const candidateController = new CandidateController(candidateService);
 
 // Super Admin protected routes
+router.get('/stats', authMiddleware, requireRole(UserRole.SUPER_ADMIN), candidateController.getStats);
 router.get('/', authMiddleware, requireRole(UserRole.SUPER_ADMIN), candidateController.getAllCandidates);
 router.post('/', authMiddleware, requireRole(UserRole.SUPER_ADMIN), candidateController.createCandidate);
 router.patch('/:id/toggle-status', authMiddleware, requireRole(UserRole.SUPER_ADMIN), candidateController.toggleStatus);

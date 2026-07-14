@@ -17,6 +17,7 @@ const rezulterController = new RezulterController(rezulterService);
 router.post('/register', rezulterController.register);
 
 // Super Admin protected routes
+router.get('/stats', authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.getStats);
 router.get('/', authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.getAllRezulters);
 router.post('/', authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.createRezulter);
 router.patch('/:id/toggle-status', authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.toggleStatus);

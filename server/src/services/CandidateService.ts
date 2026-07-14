@@ -16,9 +16,12 @@ export class CandidateService {
     };
   }
 
-  async getAllCandidates() {
-    const candidates = await this.candidateRepository.findAll();
-    return candidates.map(this.shapeCandidate);
+  async getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
+    const result = await this.candidateRepository.findAll(options);
+    return {
+      data: result.data.map((candidate) => this.shapeCandidate(candidate)),
+      pagination: result.pagination
+    };
   }
 
   async createCandidateByAdmin(data: any) {
@@ -47,5 +50,9 @@ export class CandidateService {
       throw new Error('Candidate not found.');
     }
     return this.shapeCandidate(updatedUser);
+  }
+
+  async getStats() {
+    return await this.candidateRepository.getStats();
   }
 }

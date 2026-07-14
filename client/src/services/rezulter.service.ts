@@ -10,8 +10,8 @@ export interface Rezulter {
 }
 
 export const rezulterService = {
-  getAllPaginated: async () => {
-    const response = await api.get('/rezulters');
+  getAllPaginated: async (params?: { page?: number; limit?: number; search?: string; isActive?: boolean; sortField?: string; sortOrder?: string }) => {
+    const response = await api.get('/rezulters', { params });
     return response.data;
   },
 
@@ -22,6 +22,11 @@ export const rezulterService = {
 
   toggleStatus: async (id: string) => {
     const response = await api.patch(`/rezulters/${id}/toggle-status`);
+    return response.data;
+  },
+
+  getStats: async () => {
+    const response = await api.get('/rezulters/stats');
     return response.data;
   }
 };
