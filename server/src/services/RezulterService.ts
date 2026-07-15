@@ -1,11 +1,12 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { RezulterRepository } from '../repositories/RezulterRepository';
+import { IRezulterRepository } from '../interfaces/repositories';
+import { IRezulterService } from '../interfaces/services';
 import { IRezulter } from '../models/Rezulter';
 import { UserRole, AuthProvider } from '../enums';
 
-export class RezulterService {
-  constructor(private rezulterRepository: RezulterRepository) {}
+export class RezulterService implements IRezulterService {
+  constructor(private rezulterRepository: IRezulterRepository) {}
 
   private shapeRezulter(rezulter: IRezulter) {
     return {

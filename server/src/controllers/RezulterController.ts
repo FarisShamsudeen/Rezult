@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { RezulterService } from '../services/RezulterService';
+import { IRezulterService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
 
 // Zod schema for registration validation
@@ -11,7 +11,7 @@ const registerSchema = z.object({
 });
 
 export class RezulterController {
-  constructor(private rezulterService: RezulterService) {}
+  constructor(private rezulterService: IRezulterService) {}
 
   /**
    * Registers a new Rezulter/Coordinator

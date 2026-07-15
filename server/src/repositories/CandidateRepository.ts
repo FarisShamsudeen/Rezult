@@ -1,8 +1,9 @@
 import { Candidate, ICandidate } from '../models/Candidate';
 import { Rezulter } from '../models/Rezulter';
 import { Types } from 'mongoose';
+import { ICandidateRepository } from '../interfaces/repositories';
 
-export class CandidateRepository {
+export class CandidateRepository implements ICandidateRepository {
   /**
    * Creates a new Candidate (Entrant)
    */

@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
-import { RezulterRepository } from '../repositories/RezulterRepository';
-import { CandidateRepository } from '../repositories/CandidateRepository';
+import { ICandidateRepository, IRezulterRepository } from '../interfaces/repositories';
+import { IAuthService } from '../interfaces/services';
 import { OTP } from '../models/OTP';
 import { sendEmail } from '../utils/emailService';
 import { UserRole, AuthProvider, OtpPurpose } from '../enums';
@@ -21,10 +21,10 @@ const generateTokens = (user: any, role: string) => {
   return { accessToken, refreshToken };
 };
 
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
-    private candidateRepository: CandidateRepository,
-    private rezulterRepository: RezulterRepository
+    private candidateRepository: ICandidateRepository,
+    private rezulterRepository: IRezulterRepository
   ) {}
 
   async register(role: UserRole, data: any) {

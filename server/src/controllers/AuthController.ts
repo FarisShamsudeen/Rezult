@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { AuthService } from '../services/AuthService';
+import { IAuthService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
 import { UserRole, OtpPurpose } from '../enums';
 
@@ -43,7 +43,7 @@ const resetPasswordSchema = z.object({
 });
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: IAuthService) {}
 
   private setRefreshCookie = (res: Response, token: string) => {
     res.cookie('refreshToken', token, {

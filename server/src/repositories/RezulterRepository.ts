@@ -1,8 +1,9 @@
 import { Rezulter, IRezulter, RezulterRole } from '../models/Rezulter';
 import { UserRole } from '../enums';
 import { Types } from 'mongoose';
+import { IRezulterRepository } from '../interfaces/repositories';
 
-export class RezulterRepository {
+export class RezulterRepository implements IRezulterRepository {
   /**
    * Creates a new Rezulter (Coordinator/rezulter)
    */

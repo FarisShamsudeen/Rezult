@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { CandidateService } from '../services/CandidateService';
+import { ICandidateService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
 
 const candidateSchema = z.object({
@@ -10,7 +10,7 @@ const candidateSchema = z.object({
 });
 
 export class CandidateController {
-  constructor(private candidateService: CandidateService) {}
+  constructor(private candidateService: ICandidateService) {}
 
   getAllCandidates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

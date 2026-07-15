@@ -1,10 +1,11 @@
 import bcrypt from 'bcryptjs';
-import { CandidateRepository } from '../repositories/CandidateRepository';
+import { ICandidateRepository } from '../interfaces/repositories';
+import { ICandidateService } from '../interfaces/services';
 import { ICandidate } from '../models/Candidate';
 import { AuthProvider } from '../enums';
 
-export class CandidateService {
-  constructor(private candidateRepository: CandidateRepository) {}
+export class CandidateService implements ICandidateService {
+  constructor(private candidateRepository: ICandidateRepository) {}
 
   private shapeCandidate(candidate: ICandidate) {
     return {
