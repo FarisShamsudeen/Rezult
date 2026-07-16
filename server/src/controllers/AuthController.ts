@@ -2,45 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { IAuthService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
-import { UserRole, OtpPurpose } from '../enums';
-
-const roleSchema = z.enum([UserRole.CANDIDATE, UserRole.REZULTER]);
-
-const registerSchema = z.object({
-  name: z.string().min(2, "Name is too short"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: roleSchema
-});
-
-const verifyOTPSchema = z.object({
-  email: z.string().email(),
-  otp: z.string().length(6),
-  role: roleSchema,
-  purpose: z.enum([OtpPurpose.REGISTRATION, OtpPurpose.FORGOT_PASSWORD])
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-  role: roleSchema
-});
-
-const googleAuthSchema = z.object({
-  credential: z.string(),
-  role: roleSchema
-});
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email(),
-  role: roleSchema
-});
-
-const resetPasswordSchema = z.object({
-  email: z.string().email(),
-  newPassword: z.string().min(6),
-  role: roleSchema
-});
+import {
+  registerSchema,
+  verifyOTPSchema,
+  loginSchema,
+  googleAuthSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema
+} from '../validations/auth.validation';
 
 export class AuthController {
   constructor(private authService: IAuthService) {}

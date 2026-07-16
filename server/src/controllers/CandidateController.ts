@@ -2,12 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { ICandidateService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
-
-const candidateSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters long"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters")
-});
+import { candidateSchema } from '../validations/candidate.validation';
 
 export class CandidateController {
   constructor(private candidateService: ICandidateService) {}

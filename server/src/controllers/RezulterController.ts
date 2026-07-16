@@ -2,13 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { IRezulterService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
-
-// Zod schema for registration validation
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters')
-});
+import { registerSchema } from '../validations/rezulter.validation';
 
 export class RezulterController {
   constructor(private rezulterService: IRezulterService) {}
