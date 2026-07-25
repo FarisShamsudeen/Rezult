@@ -22,14 +22,20 @@ const generateTokens = (user: any, role: string) => {
 };
 
 export class AuthService implements IAuthService {
+  #candidateRepository: ICandidateRepository;
+  #rezulterRepository: IRezulterRepository;
+
   constructor(
-    private candidateRepository: ICandidateRepository,
-    private rezulterRepository: IRezulterRepository
-  ) {}
+    candidateRepository: ICandidateRepository,
+    rezulterRepository: IRezulterRepository
+  ) {
+    this.#candidateRepository = candidateRepository;
+    this.#rezulterRepository = rezulterRepository;
+  }
 
   async register(role: UserRole, data: any) {
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
-    const OtherRepository = role === UserRole.CANDIDATE ? this.rezulterRepository : this.candidateRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
+    const OtherRepository = role === UserRole.CANDIDATE ? this.#rezulterRepository : this.#candidateRepository;
     
     // Check if user exists in the current role
     const existingUser = await Repository.findByEmail(data.email);
@@ -58,9 +64,9 @@ export class AuthService implements IAuthService {
       };
       
       if (role === UserRole.CANDIDATE) {
-        user = await this.candidateRepository.createCandidate(userData);
+        user = await this.#candidateRepository.createCandidate(userData);
       } else {
-        user = await this.rezulterRepository.createRezulter(userData);
+        user = await this.#rezulterRepository.createRezulter(userData);
       }
     }
 
@@ -91,7 +97,7 @@ export class AuthService implements IAuthService {
       throw new Error('Invalid or expired OTP');
     }
 
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
@@ -117,7 +123,7 @@ export class AuthService implements IAuthService {
   }
 
   async login(role: UserRole, email: string, password: string) {
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user || user.authProvider !== AuthProvider.LOCAL) {
@@ -159,8 +165,8 @@ export class AuthService implements IAuthService {
     }
 
     const { email, name, picture } = payload;
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
-    const OtherRepository = role === UserRole.CANDIDATE ? this.rezulterRepository : this.candidateRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
+    const OtherRepository = role === UserRole.CANDIDATE ? this.#rezulterRepository : this.#candidateRepository;
     
     let user = await Repository.findByEmail(email);
     
@@ -181,9 +187,9 @@ export class AuthService implements IAuthService {
       };
       
       if (role === UserRole.CANDIDATE) {
-        user = await this.candidateRepository.createCandidate(userData);
+        user = await this.#candidateRepository.createCandidate(userData);
       } else {
-        user = await this.rezulterRepository.createRezulter(userData);
+        user = await this.#rezulterRepository.createRezulter(userData);
       }
     }
 
@@ -196,7 +202,7 @@ export class AuthService implements IAuthService {
   }
 
   async forgotPassword(role: UserRole, email: string) {
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
@@ -233,7 +239,7 @@ export class AuthService implements IAuthService {
     // Assuming the user verified OTP, and then we just reset.
     // Alternatively, the frontend sends email & newPassword after verifying OTP.
     // For security, it's better to pass a resetToken that was given during verifyOTP, but we can trust the flow or send OTP here too.
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);
 
     if (!user) {
@@ -259,7 +265,7 @@ export class AuthService implements IAuthService {
     }
 
     const { id, role } = decoded;
-    const Repository = role === UserRole.CANDIDATE ? this.candidateRepository : this.rezulterRepository;
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findById(id);
 
     if (!user) {

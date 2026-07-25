@@ -5,7 +5,11 @@ import { sendResponse } from '../utils/responseHandler';
 import { candidateSchema } from '../validations/candidate.validation';
 
 export class CandidateController {
-  constructor(private candidateService: ICandidateService) {}
+  #candidateService: ICandidateService;
+
+  constructor(candidateService: ICandidateService) {
+    this.#candidateService = candidateService;
+  }
 
   getAllCandidates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -21,7 +25,7 @@ export class CandidateController {
       const sortField = (req.query.sortField as string) || undefined;
       const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
 
-      const result = await this.candidateService.getAllCandidates({ page, limit, search, isActive, sortField, sortOrder });
+      const result = await this.#candidateService.getAllCandidates({ page, limit, search, isActive, sortField, sortOrder });
       sendResponse(res, 200, true, result);
     } catch (error: any) {
       next(error);
@@ -31,7 +35,7 @@ export class CandidateController {
   createCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = candidateSchema.parse(req.body);
-      const safeUser = await this.candidateService.createCandidateByAdmin(validatedData);
+      const safeUser = await this.#candidateService.createCandidateByAdmin(validatedData);
       
       sendResponse(res, 201, true, safeUser);
     } catch (error: any) {
@@ -47,7 +51,7 @@ export class CandidateController {
   toggleStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const candidateId = req.params.id as string;
-      const updatedCandidate = await this.candidateService.toggleStatus(candidateId);
+      const updatedCandidate = await this.#candidateService.toggleStatus(candidateId);
       sendResponse(res, 200, true, updatedCandidate, 'Candidate status toggled successfully.');
     } catch (error: any) {
       next(error);
@@ -56,7 +60,7 @@ export class CandidateController {
 
   getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const stats = await this.candidateService.getStats();
+      const stats = await this.#candidateService.getStats();
       sendResponse(res, 200, true, stats, 'Candidate stats fetched successfully.');
     } catch (error: any) {
       next(error);

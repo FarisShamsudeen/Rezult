@@ -5,7 +5,11 @@ import { sendResponse } from '../utils/responseHandler';
 import { registerSchema } from '../validations/rezulter.validation';
 
 export class RezulterController {
-  constructor(private rezulterService: IRezulterService) {}
+  #rezulterService: IRezulterService;
+
+  constructor(rezulterService: IRezulterService) {
+    this.#rezulterService = rezulterService;
+  }
 
   /**
    * Registers a new Rezulter/Coordinator
@@ -16,7 +20,7 @@ export class RezulterController {
       const validatedData = registerSchema.parse(req.body);
 
       // 2. Pass to Service (Business Logic)
-      const { user, inviteToken } = await this.rezulterService.registerRezulter(validatedData);
+      const { user, inviteToken } = await this.#rezulterService.registerRezulter(validatedData);
 
       // 3. Return Predictable JSON Structure
       sendResponse(res, 201, true, {
@@ -51,7 +55,7 @@ export class RezulterController {
       const sortField = (req.query.sortField as string) || undefined;
       const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
 
-      const result = await this.rezulterService.getAllRezulters({ page, limit, search, isActive, sortField, sortOrder });
+      const result = await this.#rezulterService.getAllRezulters({ page, limit, search, isActive, sortField, sortOrder });
       sendResponse(res, 200, true, result);
     } catch (error: any) {
       next(error);
@@ -64,7 +68,7 @@ export class RezulterController {
   createRezulter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = registerSchema.parse(req.body);
-      const safeUser = await this.rezulterService.createRezulterByAdmin(validatedData);
+      const safeUser = await this.#rezulterService.createRezulterByAdmin(validatedData);
       
       sendResponse(res, 201, true, safeUser);
     } catch (error: any) {
@@ -83,7 +87,7 @@ export class RezulterController {
   toggleStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const rezulterId = req.params.id as string;
-      const updatedRezulter = await this.rezulterService.toggleStatus(rezulterId);
+      const updatedRezulter = await this.#rezulterService.toggleStatus(rezulterId);
       sendResponse(res, 200, true, updatedRezulter, 'Rezulter status toggled successfully.');
     } catch (error: any) {
       next(error);
@@ -92,7 +96,7 @@ export class RezulterController {
 
   getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const stats = await this.rezulterService.getStats();
+      const stats = await this.#rezulterService.getStats();
       sendResponse(res, 200, true, stats, 'Rezulter stats fetched successfully.');
     } catch (error: any) {
       next(error);

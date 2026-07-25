@@ -6,9 +6,13 @@ import { IRezulter } from '../models/Rezulter';
 import { UserRole, AuthProvider } from '../enums';
 
 export class RezulterService implements IRezulterService {
-  constructor(private rezulterRepository: IRezulterRepository) {}
+  #rezulterRepository: IRezulterRepository;
 
-  private shapeRezulter(rezulter: IRezulter) {
+  constructor(rezulterRepository: IRezulterRepository) {
+    this.#rezulterRepository = rezulterRepository;
+  }
+
+  #shapeRezulter(rezulter: IRezulter) {
     return {
       _id: rezulter._id,
       name: rezulter.name,
@@ -23,7 +27,7 @@ export class RezulterService implements IRezulterService {
    * Handles registering a new Coordinator/Rezulter workspace.
    */
   async registerRezulter(data: any) {
-    const existingUser = await this.rezulterRepository.findByEmail(data.email);
+    const existingUser = await this.#rezulterRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -33,7 +37,7 @@ export class RezulterService implements IRezulterService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     // Create the Rezulter
-    const newUser = await this.rezulterRepository.createRezulter({
+    const newUser = await this.#rezulterRepository.createRezulter({
       name: data.name,
       email: data.email,
       passwordHash,
@@ -44,16 +48,16 @@ export class RezulterService implements IRezulterService {
     // Generate a unique Secret Join Code (for Entrants/Candidates)
     const inviteToken = crypto.randomBytes(4).toString('hex').toUpperCase();
 
-    return { user: this.shapeRezulter(newUser), inviteToken };
+    return { user: this.#shapeRezulter(newUser), inviteToken };
   }
 
   /**
    * Fetch all rezulters (for Super Admin)
    */
   async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
-    const result = await this.rezulterRepository.getAllRezulters(options);
+    const result = await this.#rezulterRepository.getAllRezulters(options);
     return {
-      data: result.data.map((rezulter) => this.shapeRezulter(rezulter as IRezulter)),
+      data: result.data.map((rezulter) => this.#shapeRezulter(rezulter as IRezulter)),
       pagination: result.pagination
     };
   }
@@ -62,7 +66,7 @@ export class RezulterService implements IRezulterService {
    * Create a verified Rezulter directly (for Super Admin)
    */
   async createRezulterByAdmin(data: any) {
-    const existingUser = await this.rezulterRepository.findByEmail(data.email);
+    const existingUser = await this.#rezulterRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -70,7 +74,7 @@ export class RezulterService implements IRezulterService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
 
-    const newUser = await this.rezulterRepository.createRezulter({
+    const newUser = await this.#rezulterRepository.createRezulter({
       name: data.name,
       email: data.email,
       passwordHash,
@@ -80,18 +84,18 @@ export class RezulterService implements IRezulterService {
       candidateIds: [],
     });
 
-    return this.shapeRezulter(newUser);
+    return this.#shapeRezulter(newUser);
   }
 
   async toggleStatus(id: string) {
-    const updatedUser = await this.rezulterRepository.toggleStatus(id);
+    const updatedUser = await this.#rezulterRepository.toggleStatus(id);
     if (!updatedUser) {
       throw new Error('Rezulter not found.');
     }
-    return this.shapeRezulter(updatedUser);
+    return this.#shapeRezulter(updatedUser);
   }
 
   async getStats() {
-    return await this.rezulterRepository.getStats();
+    return await this.#rezulterRepository.getStats();
   }
 }

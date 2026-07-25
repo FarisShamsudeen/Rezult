@@ -5,9 +5,13 @@ import { ICandidate } from '../models/Candidate';
 import { AuthProvider } from '../enums';
 
 export class CandidateService implements ICandidateService {
-  constructor(private candidateRepository: ICandidateRepository) {}
+  #candidateRepository: ICandidateRepository;
 
-  private shapeCandidate(candidate: ICandidate) {
+  constructor(candidateRepository: ICandidateRepository) {
+    this.#candidateRepository = candidateRepository;
+  }
+
+  #shapeCandidate(candidate: ICandidate) {
     return {
       _id: candidate._id,
       name: candidate.name,
@@ -18,15 +22,15 @@ export class CandidateService implements ICandidateService {
   }
 
   async getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
-    const result = await this.candidateRepository.findAll(options);
+    const result = await this.#candidateRepository.findAll(options);
     return {
-      data: result.data.map((candidate) => this.shapeCandidate(candidate)),
+      data: result.data.map((candidate) => this.#shapeCandidate(candidate)),
       pagination: result.pagination
     };
   }
 
   async createCandidateByAdmin(data: any) {
-    const existingUser = await this.candidateRepository.findByEmail(data.email);
+    const existingUser = await this.#candidateRepository.findByEmail(data.email);
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
@@ -34,7 +38,7 @@ export class CandidateService implements ICandidateService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
     
-    const newCandidate = await this.candidateRepository.createCandidate({
+    const newCandidate = await this.#candidateRepository.createCandidate({
       name: data.name,
       email: data.email,
       passwordHash,
@@ -42,18 +46,18 @@ export class CandidateService implements ICandidateService {
       authProvider: AuthProvider.LOCAL
     });
     
-    return this.shapeCandidate(newCandidate);
+    return this.#shapeCandidate(newCandidate);
   }
 
   async toggleStatus(id: string) {
-    const updatedUser = await this.candidateRepository.toggleStatus(id);
+    const updatedUser = await this.#candidateRepository.toggleStatus(id);
     if (!updatedUser) {
       throw new Error('Candidate not found.');
     }
-    return this.shapeCandidate(updatedUser);
+    return this.#shapeCandidate(updatedUser);
   }
 
   async getStats() {
-    return await this.candidateRepository.getStats();
+    return await this.#candidateRepository.getStats();
   }
 }

@@ -12,9 +12,13 @@ import {
 } from '../validations/auth.validation';
 
 export class AuthController {
-  constructor(private authService: IAuthService) {}
+  #authService: IAuthService;
 
-  private setRefreshCookie = (res: Response, token: string) => {
+  constructor(authService: IAuthService) {
+    this.#authService = authService;
+  }
+
+  #setRefreshCookie = (res: Response, token: string) => {
     res.cookie('refreshToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -26,7 +30,7 @@ export class AuthController {
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = registerSchema.parse(req.body);
-      const result = await this.authService.register(data.role, data);
+      const result = await this.#authService.register(data.role, data);
       sendResponse(res, 201, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -40,10 +44,10 @@ export class AuthController {
   verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = verifyOTPSchema.parse(req.body);
-      const result: any = await this.authService.verifyOTP(data.role, data.email, data.otp, data.purpose);
-      
+      const result: any = await this.#authService.verifyOTP(data.role, data.email, data.otp, data.purpose);
+
       if (result.refreshToken) {
-        this.setRefreshCookie(res, result.refreshToken);
+        this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, 200, true, result);
@@ -59,10 +63,10 @@ export class AuthController {
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = loginSchema.parse(req.body);
-      const result: any = await this.authService.login(data.role, data.email, data.password);
-      
+      const result: any = await this.#authService.login(data.role, data.email, data.password);
+
       if (result.refreshToken) {
-        this.setRefreshCookie(res, result.refreshToken);
+        this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, 200, true, result);
@@ -78,10 +82,10 @@ export class AuthController {
   googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = googleAuthSchema.parse(req.body);
-      const result: any = await this.authService.googleAuth(data.role, data.credential);
-      
+      const result: any = await this.#authService.googleAuth(data.role, data.credential);
+
       if (result.refreshToken) {
-        this.setRefreshCookie(res, result.refreshToken);
+        this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, 200, true, result);
@@ -97,7 +101,7 @@ export class AuthController {
   forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = forgotPasswordSchema.parse(req.body);
-      const result = await this.authService.forgotPassword(data.role, data.email);
+      const result = await this.#authService.forgotPassword(data.role, data.email);
       sendResponse(res, 200, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -111,7 +115,7 @@ export class AuthController {
   resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = resetPasswordSchema.parse(req.body);
-      const result = await this.authService.resetPassword(data.role, data.email, data.newPassword);
+      const result = await this.#authService.resetPassword(data.role, data.email, data.newPassword);
       sendResponse(res, 200, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -125,10 +129,10 @@ export class AuthController {
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.cookies.refreshToken;
-      const result: any = await this.authService.refreshAccessToken(token);
-      
+      const result: any = await this.#authService.refreshAccessToken(token);
+
       if (result.refreshToken) {
-        this.setRefreshCookie(res, result.refreshToken);
+        this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
 
