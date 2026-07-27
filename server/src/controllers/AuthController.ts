@@ -10,7 +10,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema
 } from '../validations/auth.validation';
-import { StatusCode } from '../enums';
+import { StatusCode, OtpPurpose } from '../enums';
 
 export class AuthController {
   #authService: IAuthService;
@@ -24,7 +24,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: parseInt(process.env.COOKIE_MAX_AGE as string, 10)
     });
   }
 
@@ -33,11 +33,11 @@ export class AuthController {
       const data = registerSchema.parse(req.body);
       const result = await this.#authService.register(data.role, data);
       sendResponse(res, StatusCode.CREATED, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -45,18 +45,18 @@ export class AuthController {
   verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = verifyOTPSchema.parse(req.body);
-      const result: any = await this.#authService.verifyOTP(data.role, data.email, data.otp, data.purpose);
+      const result = await this.#authService.verifyOTP(data.role, (data.email as string), (data.otp as string), (data.purpose as unknown as OtpPurpose));
 
       if (result.refreshToken) {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -64,18 +64,18 @@ export class AuthController {
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = loginSchema.parse(req.body);
-      const result: any = await this.#authService.login(data.role, data.email, data.password);
+      const result = await this.#authService.login(data.role, (data.email as string), (data.password as string));
 
       if (result.refreshToken) {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
+        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -83,18 +83,18 @@ export class AuthController {
   googleAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = googleAuthSchema.parse(req.body);
-      const result: any = await this.#authService.googleAuth(data.role, data.credential);
+      const result = await this.#authService.googleAuth(data.role, data.credential);
 
       if (result.refreshToken) {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
+        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -102,13 +102,13 @@ export class AuthController {
   forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = forgotPasswordSchema.parse(req.body);
-      const result = await this.#authService.forgotPassword(data.role, data.email);
+      const result = await this.#authService.forgotPassword(data.role, (data.email as string));
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -116,13 +116,13 @@ export class AuthController {
   resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = resetPasswordSchema.parse(req.body);
-      const result = await this.#authService.resetPassword(data.role, data.email, data.newPassword);
+      const result = await this.#authService.resetPassword(data.role, (data.email as string), data.newPassword);
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -130,7 +130,7 @@ export class AuthController {
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.cookies.refreshToken;
-      const result: any = await this.#authService.refreshAccessToken(token);
+      const result = await this.#authService.refreshAccessToken(token);
 
       if (result.refreshToken) {
         this.#setRefreshCookie(res, result.refreshToken);
@@ -138,8 +138,8 @@ export class AuthController {
       }
 
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
-      sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
+    } catch (error: unknown) {
+      sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error instanceof Error ? error.message : 'Unknown error');
     }
   }
 

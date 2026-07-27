@@ -28,7 +28,7 @@ export class CandidateController {
 
       const result = await this.#candidateService.getAllCandidates({ page, limit, search, isActive, sortField, sortOrder });
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   }
@@ -39,10 +39,9 @@ export class CandidateController {
       const safeUser = await this.#candidateService.createCandidateByAdmin(validatedData);
       
       sendResponse(res, StatusCode.CREATED, true, safeUser);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        const zodError = error as any;
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
         next(error);
       }
@@ -54,7 +53,7 @@ export class CandidateController {
       const candidateId = req.params.id as string;
       const updatedCandidate = await this.#candidateService.toggleStatus(candidateId);
       sendResponse(res, StatusCode.OK, true, updatedCandidate, 'Candidate status toggled successfully.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   };
@@ -63,7 +62,7 @@ export class CandidateController {
     try {
       const stats = await this.#candidateService.getStats();
       sendResponse(res, StatusCode.OK, true, stats, 'Candidate stats fetched successfully.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   };

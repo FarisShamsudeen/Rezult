@@ -4,7 +4,7 @@ import { sendResponse } from '../utils/responseHandler';
 import { StatusCode } from '../enums';
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: Record<string, unknown> | jwt.JwtPayload | string;
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction): void => {

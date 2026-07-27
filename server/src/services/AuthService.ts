@@ -15,7 +15,7 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-const generateTokens = (user: any, role: string) => {
+const generateTokens = (user: Record<string, unknown> | import("mongoose").Document, role: string) => {
   const accessToken = jwt.sign({ id: user._id, role }, JWT_ACCESS_SECRET, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ id: user._id, role }, JWT_REFRESH_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
@@ -33,12 +33,12 @@ export class AuthService implements IAuthService {
     this.#rezulterRepository = rezulterRepository;
   }
 
-  async register(role: UserRole, data: any) {
+  async register(role: UserRole, data: Record<string, unknown>) {
     const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const OtherRepository = role === UserRole.CANDIDATE ? this.#rezulterRepository : this.#candidateRepository;
     
     // Check if user exists in the current role
-    const existingUser = await Repository.findByEmail(data.email);
+    const existingUser = await Repository.findByEmail((data.email as string));
     if (existingUser) {
       if (existingUser.isEmailVerified) {
         throw new Error('User already exists');
@@ -47,14 +47,14 @@ export class AuthService implements IAuthService {
     }
 
     // Check if user exists in the OTHER role
-    const existingOtherUser = await OtherRepository.findByEmail(data.email);
+    const existingOtherUser = await OtherRepository.findByEmail((data.email as string));
     if (existingOtherUser) {
       throw new Error('Email is already registered under a different role');
     }
 
     let user = existingUser;
     if (!user) {
-      const passwordHash = await bcrypt.hash(data.password, 10);
+      const passwordHash = await bcrypt.hash((data.password as string), 10);
       const { role: _role, ...restData } = data;
       const userData = {
         ...restData,
@@ -72,18 +72,18 @@ export class AuthService implements IAuthService {
 
     const otp = generateOTP();
     console.log(`\n========================================`);
-    console.log(`🔑 DEVELOPMENT OTP for ${data.email}: ${otp}`);
+    console.log(`🔑 DEVELOPMENT OTP for ${(data.email as string)}: ${otp}`);
     console.log(`========================================\n`);
 
     await OTP.create({
-      email: data.email,
+      email: (data.email as string),
       otp,
       role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
       purpose: OtpPurpose.REGISTRATION
     });
 
     await sendEmail(
-      data.email,
+      (data.email as string),
       'Welcome to Rezult - Verify Your Email',
       `Your OTP for registration is: ${otp}`
     );
@@ -139,14 +139,14 @@ export class AuthService implements IAuthService {
       throw new Error('Invalid credentials');
     }
 
-    const actualRole = (user as any).role ? (user as any).role.toLowerCase() : role;
+    const actualRole = ('role' in user ? (user as unknown as Record<string, unknown>).role as string : role) ? ('role' in user ? (user as unknown as Record<string, unknown>).role as string : role).toLowerCase() : role;
     const { accessToken, refreshToken } = generateTokens(user, actualRole);
     return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: actualRole } };
   }
 
   async googleAuth(role: UserRole, credential: string) {
     // With useGoogleLogin implicit flow, 'credential' is an access token
-    let payload: any;
+    let payload: Record<string, unknown>;
     try {
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${credential}` }
@@ -155,8 +155,8 @@ export class AuthService implements IAuthService {
         throw new Error('Failed to fetch user info from Google');
       }
       payload = await response.json();
-    } catch (err: any) {
-      console.error("Google Auth Error:", err.message);
+    } catch (err: unknown) {
+      console.error("Google Auth Error:", err instanceof Error ? err.message : String(err));
       throw new Error('Invalid Google token');
     }
 
@@ -168,22 +168,22 @@ export class AuthService implements IAuthService {
     const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const OtherRepository = role === UserRole.CANDIDATE ? this.#rezulterRepository : this.#candidateRepository;
     
-    let user = await Repository.findByEmail(email);
+    let user = await Repository.findByEmail(email as string);
     
     if (!user) {
       // Prevent cross-role account creation
-      const existingOtherUser = await OtherRepository.findByEmail(email);
+      const existingOtherUser = await OtherRepository.findByEmail(email as string);
       if (existingOtherUser) {
         throw new Error('Email is already registered under a different role');
       }
 
       // Create user if not exists
       const userData = {
-        name: name || 'User',
-        email,
+        name: (name as string) || 'User',
+        email: (email as string),
         authProvider: AuthProvider.GOOGLE,
         isEmailVerified: true, // Google emails are pre-verified
-        profileImage: picture
+        profileImage: picture as string
       };
       
       if (role === UserRole.CANDIDATE) {
@@ -257,13 +257,14 @@ export class AuthService implements IAuthService {
       throw new Error('No refresh token provided');
     }
 
-    let decoded: any;
+    let decoded: import("jsonwebtoken").JwtPayload | string;
     try {
       decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
     } catch (err) {
       throw new Error('Invalid or expired refresh token');
     }
 
+    if (typeof decoded === 'string' || !decoded.id) throw new Error('Invalid token format');
     const { id, role } = decoded;
     const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findById(id);

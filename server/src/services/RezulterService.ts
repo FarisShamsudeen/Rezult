@@ -19,27 +19,27 @@ export class RezulterService implements IRezulterService {
       email: rezulter.email,
       role: rezulter.role,
       isActive: rezulter.isActive,
-      createdAt: (rezulter as any).createdAt,
+      createdAt: (rezulter as unknown as Record<string, unknown>).createdAt,
     };
   }
 
   /**
    * Handles registering a new Coordinator/Rezulter workspace.
    */
-  async registerRezulter(data: any) {
-    const existingUser = await this.#rezulterRepository.findByEmail(data.email);
+  async registerRezulter(data: Record<string, unknown>) {
+    const existingUser = await this.#rezulterRepository.findByEmail((data.email as string));
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
 
     // Hash the master password
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(data.password, salt);
+    const passwordHash = await bcrypt.hash((data.password as string), salt);
 
     // Create the Rezulter
     const newUser = await this.#rezulterRepository.createRezulter({
-      name: data.name,
-      email: data.email,
+      name: (data.name as string),
+      email: (data.email as string),
       passwordHash,
       role: UserRole.REZULTER,
       candidateIds: [],
@@ -65,18 +65,18 @@ export class RezulterService implements IRezulterService {
   /**
    * Create a verified Rezulter directly (for Super Admin)
    */
-  async createRezulterByAdmin(data: any) {
-    const existingUser = await this.#rezulterRepository.findByEmail(data.email);
+  async createRezulterByAdmin(data: Record<string, unknown>) {
+    const existingUser = await this.#rezulterRepository.findByEmail((data.email as string));
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
 
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(data.password, salt);
+    const passwordHash = await bcrypt.hash((data.password as string), salt);
 
     const newUser = await this.#rezulterRepository.createRezulter({
-      name: data.name,
-      email: data.email,
+      name: (data.name as string),
+      email: (data.email as string),
       passwordHash,
       role: UserRole.REZULTER,
       isEmailVerified: true, // Auto-verified since admin created

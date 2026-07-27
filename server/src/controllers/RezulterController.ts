@@ -28,10 +28,9 @@ export class RezulterController {
         user,
         inviteToken
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        const zodError = error as any;
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
         // Pass to global error handler
         next(error);
@@ -58,7 +57,7 @@ export class RezulterController {
 
       const result = await this.#rezulterService.getAllRezulters({ page, limit, search, isActive, sortField, sortOrder });
       sendResponse(res, StatusCode.OK, true, result);
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   }
@@ -72,10 +71,9 @@ export class RezulterController {
       const safeUser = await this.#rezulterService.createRezulterByAdmin(validatedData);
       
       sendResponse(res, StatusCode.CREATED, true, safeUser);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
-        const zodError = error as any;
-        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
       } else {
         next(error);
       }
@@ -90,7 +88,7 @@ export class RezulterController {
       const rezulterId = req.params.id as string;
       const updatedRezulter = await this.#rezulterService.toggleStatus(rezulterId);
       sendResponse(res, StatusCode.OK, true, updatedRezulter, 'Rezulter status toggled successfully.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   };
@@ -99,7 +97,7 @@ export class RezulterController {
     try {
       const stats = await this.#rezulterService.getStats();
       sendResponse(res, StatusCode.OK, true, stats, 'Rezulter stats fetched successfully.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   };

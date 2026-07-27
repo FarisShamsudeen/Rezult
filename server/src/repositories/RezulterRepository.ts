@@ -25,9 +25,9 @@ export class RezulterRepository implements IRezulterRepository {
   /**
    * Finds all Rezulters with pagination, search, sorting, and filtering
    */
-  async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
+  async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: IRezulter[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }> {
     const { page, limit, search, isActive, sortField = 'createdAt', sortOrder = 'desc' } = options;
-    const query: any = { role: UserRole.REZULTER };
+    const query: Record<string, unknown> = { role: UserRole.REZULTER };
     
     if (search) {
       query.$or = [
@@ -42,7 +42,7 @@ export class RezulterRepository implements IRezulterRepository {
 
     const skip = (page - 1) * limit;
     
-    const sortParams: any = {};
+    const sortParams: Record<string, 1 | -1> = {};
     sortParams[sortField] = sortOrder === 'asc' ? 1 : -1;
 
     const [data, totalItems] = await Promise.all([

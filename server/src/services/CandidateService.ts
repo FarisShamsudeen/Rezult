@@ -17,7 +17,7 @@ export class CandidateService implements ICandidateService {
       name: candidate.name,
       email: candidate.email,
       isActive: candidate.isActive,
-      createdAt: (candidate as any).createdAt,
+      createdAt: (candidate as unknown as Record<string, unknown>).createdAt,
     };
   }
 
@@ -29,18 +29,18 @@ export class CandidateService implements ICandidateService {
     };
   }
 
-  async createCandidateByAdmin(data: any) {
-    const existingUser = await this.#candidateRepository.findByEmail(data.email);
+  async createCandidateByAdmin(data: Record<string, unknown>) {
+    const existingUser = await this.#candidateRepository.findByEmail((data.email as string));
     if (existingUser) {
       throw new Error('Email is already registered.');
     }
 
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(data.password, salt);
+    const passwordHash = await bcrypt.hash((data.password as string), salt);
     
     const newCandidate = await this.#candidateRepository.createCandidate({
-      name: data.name,
-      email: data.email,
+      name: (data.name as string),
+      email: (data.email as string),
       passwordHash,
       isEmailVerified: true, // Auto-verified by Admin
       authProvider: AuthProvider.LOCAL

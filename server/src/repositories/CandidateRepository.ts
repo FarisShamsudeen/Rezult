@@ -37,9 +37,9 @@ export class CandidateRepository implements ICandidateRepository {
   /**
    * Fetch all Candidates with pagination, search, sorting, and filtering
    */
-  async findAll(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: ICandidate[]; pagination: any }> {
+  async findAll(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: ICandidate[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }> {
     const { page, limit, search, isActive, sortField = 'createdAt', sortOrder = 'desc' } = options;
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     
     if (search) {
       query.$or = [
@@ -54,7 +54,7 @@ export class CandidateRepository implements ICandidateRepository {
 
     const skip = (page - 1) * limit;
     
-    const sortParams: any = {};
+    const sortParams: Record<string, 1 | -1> = {};
     sortParams[sortField] = sortOrder === 'asc' ? 1 : -1;
 
     const [data, totalItems] = await Promise.all([

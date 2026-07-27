@@ -5,14 +5,14 @@ import { UserRole, StatusCode } from '../enums';
 
 export const requireRole = (requiredRoles: UserRole | UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user || !req.user.role) {
+    if (!req.user || typeof req.user === 'string' || !('role' in req.user)) {
       sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, 'Access denied. Not authenticated or missing role.');
       return;
     }
 
     const rolesArray = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-    const userRole = req.user.role.toLowerCase();
-    
+    const userRole = (req.user.role as string).toLowerCase();
+
     // Check if the user's role (lowercase) matches any of the required roles (lowercase)
     const hasRole = rolesArray.some(role => role.toLowerCase() === userRole);
 
