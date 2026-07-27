@@ -7,6 +7,7 @@ import rezulterRoutes from './routes/rezulter.routes';
 import testRoutes from './routes/test.routes';
 import authRoutes from './routes/auth.routes';
 import candidateRoutes from './routes/candidate.routes';
+import { StatusCode } from './enums';
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use('/api/candidates', candidateRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-    sendResponse(res, 200, true, { message: 'Server is healthy' });
+    sendResponse(res, StatusCode.OK, true, { message: 'Server is healthy' });
 });
 
 // Global Error Handler should be the last middleware

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ICandidateService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
 import { candidateSchema } from '../validations/candidate.validation';
+import { StatusCode } from '../enums';
 
 export class CandidateController {
   #candidateService: ICandidateService;
@@ -26,7 +27,7 @@ export class CandidateController {
       const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
 
       const result = await this.#candidateService.getAllCandidates({ page, limit, search, isActive, sortField, sortOrder });
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       next(error);
     }
@@ -37,11 +38,11 @@ export class CandidateController {
       const validatedData = candidateSchema.parse(req.body);
       const safeUser = await this.#candidateService.createCandidateByAdmin(validatedData);
       
-      sendResponse(res, 201, true, safeUser);
+      sendResponse(res, StatusCode.CREATED, true, safeUser);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         const zodError = error as any;
-        sendResponse(res, 400, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
       } else {
         next(error);
       }
@@ -52,7 +53,7 @@ export class CandidateController {
     try {
       const candidateId = req.params.id as string;
       const updatedCandidate = await this.#candidateService.toggleStatus(candidateId);
-      sendResponse(res, 200, true, updatedCandidate, 'Candidate status toggled successfully.');
+      sendResponse(res, StatusCode.OK, true, updatedCandidate, 'Candidate status toggled successfully.');
     } catch (error: any) {
       next(error);
     }
@@ -61,7 +62,7 @@ export class CandidateController {
   getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const stats = await this.#candidateService.getStats();
-      sendResponse(res, 200, true, stats, 'Candidate stats fetched successfully.');
+      sendResponse(res, StatusCode.OK, true, stats, 'Candidate stats fetched successfully.');
     } catch (error: any) {
       next(error);
     }

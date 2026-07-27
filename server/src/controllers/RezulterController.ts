@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { IRezulterService } from '../interfaces/services';
 import { sendResponse } from '../utils/responseHandler';
 import { registerSchema } from '../validations/rezulter.validation';
+import { StatusCode } from '../enums';
 
 export class RezulterController {
   #rezulterService: IRezulterService;
@@ -23,14 +24,14 @@ export class RezulterController {
       const { user, inviteToken } = await this.#rezulterService.registerRezulter(validatedData);
 
       // 3. Return Predictable JSON Structure
-      sendResponse(res, 201, true, {
+      sendResponse(res, StatusCode.CREATED, true, {
         user,
         inviteToken
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         const zodError = error as any;
-        sendResponse(res, 400, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
       } else {
         // Pass to global error handler
         next(error);
@@ -56,7 +57,7 @@ export class RezulterController {
       const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
 
       const result = await this.#rezulterService.getAllRezulters({ page, limit, search, isActive, sortField, sortOrder });
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       next(error);
     }
@@ -70,11 +71,11 @@ export class RezulterController {
       const validatedData = registerSchema.parse(req.body);
       const safeUser = await this.#rezulterService.createRezulterByAdmin(validatedData);
       
-      sendResponse(res, 201, true, safeUser);
+      sendResponse(res, StatusCode.CREATED, true, safeUser);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         const zodError = error as any;
-        sendResponse(res, 400, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, zodError.errors.map((e: any) => e.message).join(', '));
       } else {
         next(error);
       }
@@ -88,7 +89,7 @@ export class RezulterController {
     try {
       const rezulterId = req.params.id as string;
       const updatedRezulter = await this.#rezulterService.toggleStatus(rezulterId);
-      sendResponse(res, 200, true, updatedRezulter, 'Rezulter status toggled successfully.');
+      sendResponse(res, StatusCode.OK, true, updatedRezulter, 'Rezulter status toggled successfully.');
     } catch (error: any) {
       next(error);
     }
@@ -97,7 +98,7 @@ export class RezulterController {
   getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const stats = await this.#rezulterService.getStats();
-      sendResponse(res, 200, true, stats, 'Rezulter stats fetched successfully.');
+      sendResponse(res, StatusCode.OK, true, stats, 'Rezulter stats fetched successfully.');
     } catch (error: any) {
       next(error);
     }

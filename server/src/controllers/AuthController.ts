@@ -10,6 +10,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema
 } from '../validations/auth.validation';
+import { StatusCode } from '../enums';
 
 export class AuthController {
   #authService: IAuthService;
@@ -31,12 +32,12 @@ export class AuthController {
     try {
       const data = registerSchema.parse(req.body);
       const result = await this.#authService.register(data.role, data);
-      sendResponse(res, 201, true, result);
+      sendResponse(res, StatusCode.CREATED, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 400, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
       }
     }
   }
@@ -50,12 +51,12 @@ export class AuthController {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 400, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
       }
     }
   }
@@ -69,12 +70,12 @@ export class AuthController {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 401, false, undefined, error.message);
+        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
       }
     }
   }
@@ -88,12 +89,12 @@ export class AuthController {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 401, false, undefined, error.message);
+        sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
       }
     }
   }
@@ -102,12 +103,12 @@ export class AuthController {
     try {
       const data = forgotPasswordSchema.parse(req.body);
       const result = await this.#authService.forgotPassword(data.role, data.email);
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 400, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
       }
     }
   }
@@ -116,12 +117,12 @@ export class AuthController {
     try {
       const data = resetPasswordSchema.parse(req.body);
       const result = await this.#authService.resetPassword(data.role, data.email, data.newPassword);
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        sendResponse(res, 400, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, (error as any).errors.map((e: any) => e.message).join(', '));
       } else {
-        sendResponse(res, 400, false, undefined, error.message);
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.message);
       }
     }
   }
@@ -136,9 +137,9 @@ export class AuthController {
         delete result.refreshToken;
       }
 
-      sendResponse(res, 200, true, result);
+      sendResponse(res, StatusCode.OK, true, result);
     } catch (error: any) {
-      sendResponse(res, 401, false, undefined, error.message);
+      sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, error.message);
     }
   }
 
@@ -148,7 +149,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     });
-    sendResponse(res, 200, true, { message: 'Logged out successfully' });
+    sendResponse(res, StatusCode.OK, true, { message: 'Logged out successfully' });
   }
 }
 

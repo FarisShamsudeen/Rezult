@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { sendResponse } from '../utils/responseHandler';
+import { StatusCode } from '../enums';
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -10,7 +11,7 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    sendResponse(res, 401, false, undefined, 'Access denied. No token provided.');
+    sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, 'Access denied. No token provided.');
     return;
   }
 
@@ -22,7 +23,7 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
     req.user = decoded;
     next();
   } catch (error) {
-    sendResponse(res, 401, false, undefined, 'Invalid or expired token.');
+    sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, 'Invalid or expired token.');
     return;
   }
 };

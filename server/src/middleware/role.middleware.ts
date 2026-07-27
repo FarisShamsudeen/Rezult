@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth.middleware';
 import { sendResponse } from '../utils/responseHandler';
-import { UserRole } from '../enums';
+import { UserRole, StatusCode } from '../enums';
 
 export const requireRole = (requiredRoles: UserRole | UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !req.user.role) {
-      sendResponse(res, 401, false, undefined, 'Access denied. Not authenticated or missing role.');
+      sendResponse(res, StatusCode.UNAUTHORIZED, false, undefined, 'Access denied. Not authenticated or missing role.');
       return;
     }
 
@@ -17,7 +17,7 @@ export const requireRole = (requiredRoles: UserRole | UserRole[]) => {
     const hasRole = rolesArray.some(role => role.toLowerCase() === userRole);
 
     if (!hasRole) {
-      sendResponse(res, 403, false, undefined, 'Access denied. Insufficient permissions.');
+      sendResponse(res, StatusCode.FORBIDDEN, false, undefined, 'Access denied. Insufficient permissions.');
       return;
     }
 
