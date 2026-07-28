@@ -1,7 +1,7 @@
 import { api } from './api';
 
 export interface Candidate {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   role: string;

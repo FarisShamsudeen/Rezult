@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, MoreVertical, Bell, Plus, Check, X, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, MoreVertical, Bell, Plus, Check, RefreshCw } from 'lucide-react';
 import { candidateService } from '../../services/candidate.service';
 import type { Candidate } from '../../services/candidate.service';
+import { ToggleStatusModal } from '../../components/modals/ToggleStatusModal';
+import { AddCandidateModal } from '../../components/modals/AddCandidateModal';
 
 export function SuperAdminCandidates() {
   const [activeTab, setActiveTab] = useState('All Status');
@@ -24,14 +26,7 @@ export function SuperAdminCandidates() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0, currentPage: 1 });
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [modalError, setModalError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [candidateToToggle, setCandidateToToggle] = useState<Candidate | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -93,39 +88,6 @@ export function SuperAdminCandidates() {
   };
 
   const tabs = ['All Status', 'Active', 'Suspended'];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddCandidate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setModalError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setModalError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setModalError('Password must be at least 6 characters');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await candidateService.create(formData);
-      setIsModalOpen(false);
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-      fetchCandidates();
-      fetchStats();
-    } catch (error: any) {
-      setModalError(error.response?.data?.error || 'Failed to create candidate');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleToggleStatus = async (id: string) => {
     try {
@@ -316,7 +278,7 @@ export function SuperAdminCandidates() {
                 </tr>
               ) : (
                 candidates.map((cand) => (
-                  <tr key={cand._id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={cand.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-4">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
@@ -338,7 +300,7 @@ export function SuperAdminCandidates() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <button 
-                          onClick={() => handleToggleStatus(cand._id)}
+                          onClick={() => setCandidateToToggle(cand)}
                           className={`relative w-11 h-6 rounded-full transition-colors flex items-center shrink-0 ${
                             cand.isActive ? 'bg-[#1C64F2]' : 'bg-gray-600'
                           }`}
@@ -407,103 +369,31 @@ export function SuperAdminCandidates() {
         </div>
       </div>
 
+      {/* Toggle Status Confirmation Modal */}
+      <ToggleStatusModal
+        isOpen={!!candidateToToggle}
+        onClose={() => setCandidateToToggle(null)}
+        onConfirm={() => {
+          if (candidateToToggle) {
+            handleToggleStatus(candidateToToggle.id);
+            setCandidateToToggle(null);
+          }
+        }}
+        entityName={candidateToToggle?.name || ''}
+        entityType="candidate"
+        isActive={candidateToToggle?.isActive || false}
+      />
+
       {/* Add Candidate Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#121620] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
-              <h2 className="text-xl font-bold text-white tracking-wide">Add New Candidate</h2>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddCandidate} className="p-6 flex flex-col gap-5">
-              {modalError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm font-medium">
-                  {modalError}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Candidate Name</label>
-                  <input 
-                    required
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    type="text" 
-                    placeholder="e.g. John Doe" 
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 font-medium"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Candidate Email</label>
-                  <input 
-                    required
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="john@example.com" 
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Enter Password</label>
-                  <input 
-                    required
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="••••••••" 
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 tracking-widest font-medium"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Re-Type Password</label>
-                  <input 
-                    required
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    placeholder="••••••••" 
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 tracking-widest font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-white/5">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-300 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-white hover:bg-gray-200 text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Candidate'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddCandidateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          fetchCandidates();
+          fetchStats();
+        }}
+      />
 
     </div>
   );

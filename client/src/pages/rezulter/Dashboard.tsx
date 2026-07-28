@@ -7,7 +7,7 @@ import {
   ClipboardList, Users, TrendingUp, MoreVertical, Zap, PlusCircle,
   ChevronRight, Link as LinkIcon, Copy, Plus, HelpCircle, LogOutIcon
 } from 'lucide-react';
-import { LogoutModal } from '../../components/common/LogoutModal';
+import { LogoutModal } from '../../components/modals/LogoutModal';
 
 export function RezulterDashboard() {
   const { user } = useAuth();
@@ -153,8 +153,8 @@ export function RezulterDashboard() {
                       </td>
                       <td className="py-5">
                         <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold border tracking-wide uppercase ${exam.status === 'Active'
-                            ? 'bg-[#00FF87]/10 text-[#00FF87] border-[#00FF87]/20'
-                            : 'bg-[#FF9500]/10 text-[#FF9500] border-[#FF9500]/20'
+                          ? 'bg-[#00FF87]/10 text-[#00FF87] border-[#00FF87]/20'
+                          : 'bg-[#FF9500]/10 text-[#FF9500] border-[#FF9500]/20'
                           }`}>
                           {exam.status}
                         </span>
@@ -273,92 +273,92 @@ export function RezulterLayout() {
   return (
     <>
       <div className="h-screen w-full bg-[#0A0D14] overflow-hidden flex">
-      {/* Sidebar - Dark theme for Rezulter */}
-      <aside className="w-[280px] h-full flex flex-col relative z-20 bg-[#1C242A] border-r border-white/5 shrink-0">
+        {/* Sidebar - Dark theme for Rezulter */}
+        <aside className="w-[280px] h-full flex flex-col relative z-20 bg-[#1C242A] border-r border-white/5 shrink-0">
 
-        {/* Logo Area */}
-        <div className="h-[100px] flex items-center px-8 w-full mt-4">
-          <div className="flex items-center gap-2">
-            <img src="/rezult_logo.png" alt="Logo" className="w-8 h-8 object-contain" />
-            <span className="text-white font-orbitron text-[26px] font-bold tracking-[0.2em] uppercase">ezult</span>
+          {/* Logo Area */}
+          <div className="h-[100px] flex items-center px-8 w-full mt-4">
+            <div className="flex items-center gap-2">
+              <img src="/rezult_logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <span className="text-white font-orbitron text-[26px] font-bold tracking-[0.2em] uppercase">ezult</span>
+            </div>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex flex-col gap-2 mt-4 flex-1">
-          {navItems.map((item) => (
+          {/* Navigation */}
+          <nav className="flex flex-col gap-2 mt-4 flex-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                className={() => {
+                  const active = item.path === activePath;
+                  return `flex items-center gap-4 py-3.5 px-8 transition-all duration-300 font-bold text-[15px] ${active
+                    ? 'bg-[#00EBD5]/10 border-l-[3px] border-[#00EBD5] text-[#00EBD5]'
+                    : 'text-white/50 hover:text-white border-l-[3px] border-transparent hover:bg-white/[0.02]'
+                    }`;
+                }}
+              >
+                {() => {
+                  const active = item.path === activePath;
+                  return (
+                    <>
+                      <item.icon className={`w-[22px] h-[22px] ${active ? 'text-[#00EBD5]' : 'text-white/40'}`} />
+                      <span className="tracking-wide">{item.name}</span>
+                    </>
+                  );
+                }}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Bottom Area */}
+          <div className="flex flex-col mt-auto pb-8 px-6 gap-6">
             <NavLink
-              key={item.name}
-              to={item.path}
+              to="/support"
               className={() => {
-                const active = item.path === activePath;
-                return `flex items-center gap-4 py-3.5 px-8 transition-all duration-300 font-bold text-[15px] ${active
-                  ? 'bg-[#00EBD5]/10 border-l-[3px] border-[#00EBD5] text-[#00EBD5]'
-                  : 'text-white/50 hover:text-white border-l-[3px] border-transparent hover:bg-white/[0.02]'
+                const active = activePath === '/support';
+                return `flex items-center gap-3 transition-colors font-bold text-[14px] px-4 py-3 rounded-2xl ${active ? 'bg-[#00EBD5]/10 text-[#00EBD5]' : 'text-white/50 hover:text-white hover:bg-white/[0.02]'
                   }`;
               }}
             >
               {() => {
-                const active = item.path === activePath;
+                const active = activePath === '/support';
                 return (
                   <>
-                    <item.icon className={`w-[22px] h-[22px] ${active ? 'text-[#00EBD5]' : 'text-white/40'}`} />
-                    <span className="tracking-wide">{item.name}</span>
+                    <HelpCircle className={`w-5 h-5 ${active ? 'text-[#00EBD5]' : 'text-white/40'}`} />
+                    Help & Support
                   </>
                 );
               }}
             </NavLink>
-          ))}
-        </nav>
 
-        {/* Bottom Area */}
-        <div className="flex flex-col mt-auto pb-8 px-6 gap-6">
-          <NavLink
-            to="/support"
-            className={() => {
-              const active = activePath === '/support';
-              return `flex items-center gap-3 transition-colors font-bold text-[14px] px-4 py-3 rounded-2xl ${active ? 'bg-[#00EBD5]/10 text-[#00EBD5]' : 'text-white/50 hover:text-white hover:bg-white/[0.02]'
-                }`;
-            }}
-          >
-            {() => {
-              const active = activePath === '/support';
-              return (
-                <>
-                  <HelpCircle className={`w-5 h-5 ${active ? 'text-[#00EBD5]' : 'text-white/40'}`} />
-                  Help & Support
-                </>
-              );
-            }}
-          </NavLink>
-
-          {/* Profile Card / Logout */}
-          <div className="bg-[#12181C] border border-white/5 rounded-2xl p-4 flex items-center justify-between group cursor-pointer hover:border-white/10 transition-all" onClick={() => setIsLogoutModalOpen(true)}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00EBD5] to-[#0072FF] flex items-center justify-center text-black font-bold text-lg">
-                {user?.name?.charAt(0).toUpperCase() || 'R'}
+            {/* Profile Card / Logout */}
+            <div className="bg-[#12181C] border border-white/5 rounded-2xl p-4 flex items-center justify-between group cursor-pointer hover:border-white/10 transition-all" onClick={() => setIsLogoutModalOpen(true)}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00EBD5] to-[#0072FF] flex items-center justify-center text-black font-bold text-lg">
+                  {user?.name?.charAt(0).toUpperCase() || 'R'}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-[14px] leading-tight">{user?.name || 'Brototype'}</span>
+                  <span className="text-white/40 text-[12px] font-medium">Admin</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-white font-bold text-[14px] leading-tight">{user?.name || 'Brototype'}</span>
-                <span className="text-white/40 text-[12px] font-medium">Admin</span>
-              </div>
+              <LogOutIcon className="w-5 h-5 text-white/30 group-hover:text-[#00EBD5] transition-colors" />
             </div>
-            <LogOutIcon className="w-5 h-5 text-white/30 group-hover:text-[#00EBD5] transition-colors" />
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-hidden bg-[#0A0D14] relative z-30 p-8">
-        <Outlet />
-      </main>
-    </div>
+        {/* Main Content Area */}
+        <main className="flex-1 h-full overflow-hidden bg-[#0A0D14] relative z-30 p-8">
+          <Outlet />
+        </main>
+      </div>
 
       {/* Logout Confirmation Modal */}
-      <LogoutModal 
-        isOpen={isLogoutModalOpen} 
-        onClose={() => setIsLogoutModalOpen(false)} 
-        onConfirm={handleLogout} 
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
       />
     </>
   );

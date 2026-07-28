@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Bell, Plus, Check, X, RefreshCw } from 'lucide-react';
 import { rezulterService } from '../../services/rezulter.service';
 import type { Rezulter } from '../../services/rezulter.service';
+import { ToggleStatusModal } from '../../components/modals/ToggleStatusModal';
+import { AddRezulterModal } from '../../components/modals/AddRezulterModal';
 
 export function SuperAdminRezulters() {
   const [activeTab, setActiveTab] = useState('All Status');
@@ -24,14 +26,7 @@ export function SuperAdminRezulters() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0, currentPage: 1 });
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [modalError, setModalError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rezulterToToggle, setRezulterToToggle] = useState<Rezulter | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -66,7 +61,7 @@ export function SuperAdminRezulters() {
       let isActiveParam = undefined;
       if (activeTab === 'Active') isActiveParam = true;
       if (activeTab === 'Suspended') isActiveParam = false;
-      
+
       const [sortField, sortOrder] = sortOption.split('_');
 
       const response = await rezulterService.getAllPaginated({
@@ -93,39 +88,6 @@ export function SuperAdminRezulters() {
   };
 
   const tabs = ['All Status', 'Active', 'Suspended'];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddRezulter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setModalError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setModalError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setModalError('Password must be at least 6 characters');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await rezulterService.create(formData);
-      setIsModalOpen(false);
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-      fetchRezulters();
-      fetchStats();
-    } catch (error: any) {
-      setModalError(error.response?.data?.error || 'Failed to add rezulter');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleToggleStatus = async (id: string) => {
     try {
@@ -181,7 +143,7 @@ export function SuperAdminRezulters() {
             <span className="text-[#00EBD5] text-sm font-medium">Updated live</span>
           </div>
         </div>
-        
+
         <div className="bg-[#161D27] border border-white/5 rounded-2xl p-6 relative overflow-hidden shadow-lg">
           <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl"></div>
           <h3 className="text-gray-400 text-[13px] font-semibold tracking-wider uppercase mb-3">Active Rezulters</h3>
@@ -191,7 +153,7 @@ export function SuperAdminRezulters() {
             <span className="text-white/60 text-sm font-medium">Currently active</span>
           </div>
         </div>
-        
+
         <div className="bg-[#161D27] border border-white/5 rounded-2xl p-6 relative overflow-hidden shadow-lg">
           <div className="absolute -right-6 -top-6 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl"></div>
           <h3 className="text-gray-400 text-[13px] font-semibold tracking-wider uppercase mb-3">Suspended</h3>
@@ -234,7 +196,7 @@ export function SuperAdminRezulters() {
             <div className="w-px h-6 bg-white/10 mx-1"></div>
             {/* Custom Sort Dropdown */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsSortOpen(!isSortOpen)}
                 onBlur={() => setTimeout(() => setIsSortOpen(false), 200)}
                 className="flex items-center justify-between gap-2 bg-[#1F2937] border border-white/5 rounded-lg px-4 py-2.5 text-sm text-gray-300 font-medium hover:bg-white/5 focus:outline-none focus:border-[#1C64F2] transition-colors min-w-[190px]"
@@ -261,11 +223,10 @@ export function SuperAdminRezulters() {
                         setPage(1);
                         setIsSortOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        sortOption === option.value 
-                          ? 'bg-[#1C64F2]/10 text-[#60a5fa] font-medium' 
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortOption === option.value
+                          ? 'bg-[#1C64F2]/10 text-[#60a5fa] font-medium'
                           : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                      }`}
+                        }`}
                     >
                       {option.label}
                     </button>
@@ -280,10 +241,10 @@ export function SuperAdminRezulters() {
                 key={tab}
                 onClick={() => { setActiveTab(tab); setPage(1); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ${activeTab === tab
-                    ? 'bg-[#1e3a8a] text-[#60a5fa] border border-[#1e3a8a]'
-                    : tab === 'Suspended'
-                      ? 'border border-red-500/20 text-red-500 hover:bg-red-500/10'
-                      : 'border border-white/5 text-gray-400 hover:bg-white/5'
+                  ? 'bg-[#1e3a8a] text-[#60a5fa] border border-[#1e3a8a]'
+                  : tab === 'Suspended'
+                    ? 'border border-red-500/20 text-red-500 hover:bg-red-500/10'
+                    : 'border border-white/5 text-gray-400 hover:bg-white/5'
                   }`}
               >
                 {tab}
@@ -315,12 +276,12 @@ export function SuperAdminRezulters() {
                 </tr>
               ) : (
                 rezulters.map((inst) => (
-                  <tr key={inst._id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={inst.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-4">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${inst.isActive
-                            ? 'bg-blue-500/10 text-blue-500'
-                            : 'bg-red-500/10 text-red-500'
+                          ? 'bg-blue-500/10 text-blue-500'
+                          : 'bg-red-500/10 text-red-500'
                           }`}>
                           {getInitials(inst.name)}
                         </div>
@@ -336,7 +297,7 @@ export function SuperAdminRezulters() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => handleToggleStatus(inst._id)}
+                          onClick={() => setRezulterToToggle(inst)}
                           className={`relative w-11 h-6 rounded-full transition-colors flex items-center shrink-0 ${inst.isActive ? 'bg-[#1C64F2]' : 'bg-gray-600'
                             }`}
                         >
@@ -402,103 +363,31 @@ export function SuperAdminRezulters() {
         </div>
       </div>
 
+      {/* Toggle Status Confirmation Modal */}
+      <ToggleStatusModal
+        isOpen={!!rezulterToToggle}
+        onClose={() => setRezulterToToggle(null)}
+        onConfirm={() => {
+          if (rezulterToToggle) {
+            handleToggleStatus(rezulterToToggle.id);
+            setRezulterToToggle(null);
+          }
+        }}
+        entityName={rezulterToToggle?.name || ''}
+        entityType="rezulter"
+        isActive={rezulterToToggle?.isActive || false}
+      />
+
       {/* Add Rezulter Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#121620] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
-              <h2 className="text-xl font-bold text-white tracking-wide">Add New Rezulter</h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddRezulter} className="p-6 flex flex-col gap-5">
-              {modalError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm font-medium">
-                  {modalError}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Rezulter Name</label>
-                  <input
-                    required
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    type="text"
-                    placeholder="e.g. Oxford University"
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 font-medium"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Rezulter Email Address</label>
-                  <input
-                    required
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="oxford@outlook.com"
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Enter Password</label>
-                  <input
-                    required
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="••••••••"
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 tracking-widest font-medium"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Re-Type Password</label>
-                  <input
-                    required
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    placeholder="••••••••"
-                    className="w-full bg-white text-black rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1C64F2] transition-shadow placeholder:text-gray-500 tracking-widest font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-white/5">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-300 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-white hover:bg-gray-200 text-black px-6 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Rezulter'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddRezulterModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          fetchRezulters();
+          fetchStats();
+        }}
+      />
 
     </div>
   );

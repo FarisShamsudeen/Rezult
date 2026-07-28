@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Calculator, Check, AlertCircle, LayoutDashboard, FileText, Building2, Calendar, MessageSquareWarning, User, LogOut } from 'lucide-react';
-import { LogoutModal } from '../../components/common/LogoutModal';
+import { LogoutModal } from '../../components/modals/LogoutModal';
 
 export function CandidateDashboard() {
   const { user } = useAuth();
@@ -300,8 +300,8 @@ export function CandidateLayout() {
                   className={() => {
                     const active = item.path === activePath;
                     return `relative flex items-center gap-4 py-3.5 px-6 mx-5 mb-2 transition-all duration-300 font-bold text-[17px] rounded-[40px] ${active
-                        ? 'bg-[#050505] text-white shadow-lg'
-                        : 'text-[#050505] hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
+                      ? 'bg-[#050505] text-white shadow-lg'
+                      : 'text-[#050505] hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
                       }`;
                   }}
                 >
@@ -324,8 +324,8 @@ export function CandidateLayout() {
                   className={() => {
                     const active = activePath === '/profile';
                     return `relative flex items-center gap-4 py-3.5 px-6 mx-5 font-bold text-[17px] rounded-[40px] transition-all duration-300 ${active
-                        ? 'bg-[#050505] text-white shadow-lg'
-                        : 'text-[#050505] hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
+                      ? 'bg-[#050505] text-white shadow-lg'
+                      : 'text-[#050505] hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
                       }`;
                   }}
                 >
@@ -366,10 +366,10 @@ export function CandidateLayout() {
       </div>
 
       {/* Logout Confirmation Modal */}
-      <LogoutModal 
-        isOpen={isLogoutModalOpen} 
-        onClose={() => setIsLogoutModalOpen(false)} 
-        onConfirm={handleLogout} 
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
       />
     </div>
   );

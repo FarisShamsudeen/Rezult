@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
@@ -27,8 +27,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem('user');
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Self-heal: if role is missing or invalid due to previous backend DTO issues
+        if (!parsedUser.role || !['candidate', 'rezulter', 'super_admin'].includes(parsedUser.role)) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        } else {
+          setToken(storedToken);
+          setUser(parsedUser);
+        }
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 

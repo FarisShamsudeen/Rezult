@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import { SwipeButton } from '../components/SwipeButton';
+import { SwipeButton } from '../components/common/SwipeButton';
 import { Link } from 'react-router-dom';
 import '../App.css';
 import { useEffect } from 'react';

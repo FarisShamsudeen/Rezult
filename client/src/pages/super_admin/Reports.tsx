@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Bell, Paperclip, Send, Download, ChevronDown, FileText } from 'lucide-react';
 
 export function SuperAdminReports() {
@@ -64,28 +64,26 @@ export function SuperAdminReports() {
 
       {/* Main Layout Container */}
       <div className="flex flex-1 gap-6 min-h-0">
-        
+
         {/* Left Pane - List */}
         <div className="w-[380px] flex flex-col shrink-0">
           {/* Tabs */}
           <div className="flex items-center bg-[#161D27] p-1.5 rounded-xl border border-white/5 mb-6">
             <button
               onClick={() => setActiveTab('Rezulters')}
-              className={`flex-1 py-2 rounded-lg text-[13px] font-bold tracking-wider transition-colors ${
-                activeTab === 'Rezulters'
+              className={`flex-1 py-2 rounded-lg text-[13px] font-bold tracking-wider transition-colors ${activeTab === 'Rezulters'
                   ? 'bg-[#1C3A5A] text-[#60A5FA]'
                   : 'text-gray-400 hover:text-gray-200'
-              }`}
+                }`}
             >
               Rezulters
             </button>
             <button
               onClick={() => setActiveTab('Candidates')}
-              className={`flex-1 py-2 rounded-lg text-[13px] font-bold tracking-wider transition-colors ${
-                activeTab === 'Candidates'
+              className={`flex-1 py-2 rounded-lg text-[13px] font-bold tracking-wider transition-colors ${activeTab === 'Candidates'
                   ? 'bg-[#1C3A5A] text-[#60A5FA]'
                   : 'text-gray-400 hover:text-gray-200'
-              }`}
+                }`}
             >
               Candidates
             </button>
@@ -97,11 +95,10 @@ export function SuperAdminReports() {
               <div
                 key={chat.id}
                 onClick={() => setActiveChat(chat.id)}
-                className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                  chat.isActive
+                className={`p-5 rounded-2xl border cursor-pointer transition-all ${chat.isActive
                     ? 'bg-[#121A25] border-l-4 border-l-[#3B82F6] border-y-white/10 border-r-white/10 shadow-lg'
                     : 'bg-[#111827] border-white/5 hover:bg-white/[0.02]'
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-white font-semibold text-[15px]">{chat.name}</h3>
@@ -128,7 +125,7 @@ export function SuperAdminReports() {
 
         {/* Right Pane - Chat Window */}
         <div className="flex-1 bg-[#121822] border border-white/5 rounded-2xl flex flex-col shadow-2xl min-w-0">
-          
+
           {/* Chat Header */}
           <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
             <div>
@@ -142,7 +139,7 @@ export function SuperAdminReports() {
                 Ticket #é S-2024-889 <span className="mx-2">•</span> Hardware Validation
               </p>
             </div>
-            
+
             <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-gray-300 text-[13px] font-bold hover:bg-white/10 transition-colors">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               In Progress
@@ -152,7 +149,7 @@ export function SuperAdminReports() {
 
           {/* Chat Messages Area */}
           <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8">
-            
+
             {/* Incoming Message 1 */}
             <div>
               <div className="flex items-center gap-3 mb-2">

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Bell, KeyRound, Lock, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/auth.service';
 import { useNavigate } from 'react-router-dom';
-import { LogoutModal } from '../../components/common/LogoutModal';
+import { LogoutModal } from '../../components/modals/LogoutModal';
 
 export function SuperAdminProfile() {
   const { logout } = useAuth();
@@ -36,7 +36,7 @@ export function SuperAdminProfile() {
 
       {/* Centered Content */}
       <div className="flex-1 flex flex-col items-center max-w-2xl mx-auto w-full">
-        
+
         {/* Title Section */}
         <div className="text-center mb-10">
           <p className="text-[#60A5FA] text-[13px] font-bold tracking-[0.2em] uppercase mb-3">
@@ -50,7 +50,7 @@ export function SuperAdminProfile() {
 
         {/* Security Card */}
         <div className="bg-[#12161D] border border-white/5 rounded-xl w-full p-8 relative overflow-hidden shadow-2xl mb-12 border-l-4 border-l-[#60A5FA]">
-          
+
           <div className="flex items-center gap-4 mb-8">
             <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
               <KeyRound className="w-6 h-6 text-gray-300" />
@@ -68,8 +68,8 @@ export function SuperAdminProfile() {
               </label>
               <div className="relative">
                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   defaultValue="password123"
                   className="w-full bg-[#1A1F29] border border-transparent rounded-lg pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-white/10 transition-colors tracking-widest"
                 />
@@ -83,8 +83,8 @@ export function SuperAdminProfile() {
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     defaultValue="password123"
                     className="w-full bg-[#1A1F29] border border-transparent rounded-lg pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-white/10 transition-colors tracking-widest"
                   />
@@ -96,8 +96,8 @@ export function SuperAdminProfile() {
                 </label>
                 <div className="relative">
                   <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     defaultValue="password123"
                     className="w-full bg-[#1A1F29] border border-transparent rounded-lg pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-white/10 transition-colors tracking-widest"
                   />
@@ -127,7 +127,7 @@ export function SuperAdminProfile() {
           <p className="text-gray-400 text-sm mb-6">
             Finished your session? Ensure you terminate active connections.
           </p>
-          <button 
+          <button
             onClick={() => setIsLogoutModalOpen(true)}
             className="flex items-center gap-3 mx-auto px-6 py-3 rounded-lg border border-[#FF3B30]/30 text-[#FF3B30] hover:bg-[#FF3B30]/10 font-bold text-[14px] tracking-wider transition-colors uppercase"
           >
@@ -144,10 +144,10 @@ export function SuperAdminProfile() {
         </div>
       </div>
 
-      <LogoutModal 
-        isOpen={isLogoutModalOpen} 
-        onClose={() => setIsLogoutModalOpen(false)} 
-        onConfirm={handleLogout} 
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
       />
     </div>
   );

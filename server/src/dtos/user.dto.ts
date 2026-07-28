@@ -7,6 +7,7 @@ export interface CandidateResponseDTO {
   id: string;
   name: string;
   email: string;
+  role: 'candidate';
   phoneNumber?: string;
   isActive: boolean;
   isEmailVerified: boolean;
@@ -20,7 +21,8 @@ export interface RezulterResponseDTO {
   id: string;
   name: string;
   email: string;
-  role: RezulterRole;
+  role: 'rezulter' | 'super_admin';
+  subRole: RezulterRole;
   phoneNumber?: string;
   isActive: boolean;
   isEmailVerified: boolean;
@@ -37,6 +39,7 @@ export function mapToCandidateDTO(candidate: ICandidate): CandidateResponseDTO {
     id: candidate._id ? candidate._id.toString() : '',
     name: candidate.name,
     email: candidate.email,
+    role: 'candidate',
     phoneNumber: candidate.phoneNumber,
     isActive: candidate.isActive,
     isEmailVerified: candidate.isEmailVerified,
@@ -53,7 +56,8 @@ export function mapToRezulterDTO(rezulter: IRezulter): RezulterResponseDTO {
     id: rezulter._id ? rezulter._id.toString() : '',
     name: rezulter.name,
     email: rezulter.email,
-    role: rezulter.role,
+    role: (rezulter.role as string).toLowerCase() === 'super_admin' ? 'super_admin' : 'rezulter',
+    subRole: rezulter.role,
     phoneNumber: rezulter.phoneNumber,
     isActive: rezulter.isActive,
     isEmailVerified: rezulter.isEmailVerified,
