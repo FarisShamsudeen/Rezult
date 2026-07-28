@@ -8,6 +8,7 @@ import testRoutes from './routes/test.routes';
 import authRoutes from './routes/auth.routes';
 import candidateRoutes from './routes/candidate.routes';
 import { StatusCode } from './enums';
+import { ENDPOINTS } from './constants/endpoints';
 
 const app = express();
 
@@ -19,13 +20,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use('/api/rezulters', rezulterRoutes);
-app.use('/api/test', testRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/candidates', candidateRoutes);
+app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.REZULTERS.BASE}`, rezulterRoutes);
+app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.TEST.BASE}`, testRoutes);
+app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.AUTH.BASE}`, authRoutes);
+app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.CANDIDATES.BASE}`, candidateRoutes);
 
 // Health check route
-app.get('/api/health', (req, res) => {
+app.get(`${ENDPOINTS.API_BASE}${ENDPOINTS.HEALTH}`, (req, res) => {
     sendResponse(res, StatusCode.OK, true, { message: 'Server is healthy' });
 });
 

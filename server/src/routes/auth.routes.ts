@@ -3,6 +3,7 @@ import { AuthController } from '../controllers/AuthController';
 import { AuthService } from '../services/AuthService';
 import { CandidateRepository } from '../repositories/CandidateRepository';
 import { RezulterRepository } from '../repositories/RezulterRepository';
+import { ENDPOINTS } from '../constants/endpoints';
 
 const router = Router();
 
@@ -12,13 +13,13 @@ const rezulterRepository = new RezulterRepository();
 const authService = new AuthService(candidateRepository, rezulterRepository);
 const authController = new AuthController(authService);
 
-router.post('/signup', authController.register);
-router.post('/verify-otp', authController.verifyOTP);
-router.post('/login', authController.login);
-router.post('/google', authController.googleAuth);
-router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password', authController.resetPassword);
-router.post('/refresh-token', authController.refreshToken);
-router.post('/logout', authController.logout);
+router.post(ENDPOINTS.AUTH.SIGNUP, authController.register);
+router.post(ENDPOINTS.AUTH.VERIFY_OTP, authController.verifyOTP);
+router.post(ENDPOINTS.AUTH.LOGIN, authController.login);
+router.post(ENDPOINTS.AUTH.GOOGLE, authController.googleAuth);
+router.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, authController.forgotPassword);
+router.post(ENDPOINTS.AUTH.RESET_PASSWORD, authController.resetPassword);
+router.post(ENDPOINTS.AUTH.REFRESH_TOKEN, authController.refreshToken);
+router.post(ENDPOINTS.AUTH.LOGOUT, authController.logout);
 
 export default router;
