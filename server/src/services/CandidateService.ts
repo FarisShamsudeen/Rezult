@@ -3,6 +3,7 @@ import { ICandidateRepository } from '../interfaces/repositories';
 import { ICandidateService } from '../interfaces/services';
 import { ICandidate } from '../models/Candidate';
 import { AuthProvider } from '../enums';
+import { mapToCandidateDTO } from '../dtos/user.dto';
 
 export class CandidateService implements ICandidateService {
   #candidateRepository: ICandidateRepository;
@@ -11,20 +12,12 @@ export class CandidateService implements ICandidateService {
     this.#candidateRepository = candidateRepository;
   }
 
-  #shapeCandidate(candidate: ICandidate) {
-    return {
-      _id: candidate._id,
-      name: candidate.name,
-      email: candidate.email,
-      isActive: candidate.isActive,
-      createdAt: (candidate as unknown as Record<string, unknown>).createdAt,
-    };
-  }
+
 
   async getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
     const result = await this.#candidateRepository.findAll(options);
     return {
-      data: result.data.map((candidate) => this.#shapeCandidate(candidate)),
+      data: result.data.map((candidate) => mapToCandidateDTO(candidate)),
       pagination: result.pagination
     };
   }
@@ -38,7 +31,7 @@ export class CandidateService implements ICandidateService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash((data.password as string), salt);
     
-    const newCandidate = await this.#candidateRepository.createCandidate({
+    const newCandidate = await this.#candidateRepository.create({
       name: (data.name as string),
       email: (data.email as string),
       passwordHash,
@@ -46,7 +39,7 @@ export class CandidateService implements ICandidateService {
       authProvider: AuthProvider.LOCAL
     });
     
-    return this.#shapeCandidate(newCandidate);
+    return { user: mapToCandidateDTO(newCandidate) };
   }
 
   async toggleStatus(id: string) {
@@ -54,7 +47,7 @@ export class CandidateService implements ICandidateService {
     if (!updatedUser) {
       throw new Error('Candidate not found.');
     }
-    return this.#shapeCandidate(updatedUser);
+    return mapToCandidateDTO(updatedUser);
   }
 
   async getStats() {

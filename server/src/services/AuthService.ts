@@ -6,6 +6,9 @@ import { IAuthService } from '../interfaces/services';
 import { OTP } from '../models/OTP';
 import { sendEmail } from '../utils/emailService';
 import { UserRole, AuthProvider, OtpPurpose } from '../enums';
+import { mapToCandidateDTO, mapToRezulterDTO } from '../dtos/user.dto';
+import { ICandidate } from '../models/Candidate';
+import { IRezulter } from '../models/Rezulter';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback_access_secret';
@@ -64,9 +67,9 @@ export class AuthService implements IAuthService {
       };
       
       if (role === UserRole.CANDIDATE) {
-        user = await this.#candidateRepository.createCandidate(userData);
+        user = await this.#candidateRepository.create(userData);
       } else {
-        user = await this.#rezulterRepository.createRezulter(userData);
+        user = await this.#rezulterRepository.create(userData);
       }
     }
 
@@ -114,7 +117,8 @@ export class AuthService implements IAuthService {
 
     if (purpose === OtpPurpose.REGISTRATION) {
       const { accessToken, refreshToken } = generateTokens(user, role);
-      return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role } };
+      const userDTO = role === UserRole.CANDIDATE ? mapToCandidateDTO(user as ICandidate) : mapToRezulterDTO(user as IRezulter);
+      return { token: accessToken, refreshToken, user: userDTO };
     }
     
     // For forgot password, we might return a temporary token or just success message
@@ -141,7 +145,8 @@ export class AuthService implements IAuthService {
 
     const actualRole = ('role' in user ? (user as unknown as Record<string, unknown>).role as string : role) ? ('role' in user ? (user as unknown as Record<string, unknown>).role as string : role).toLowerCase() : role;
     const { accessToken, refreshToken } = generateTokens(user, actualRole);
-    return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: actualRole } };
+    const userDTO = role === UserRole.CANDIDATE ? mapToCandidateDTO(user as ICandidate) : mapToRezulterDTO(user as IRezulter);
+    return { token: accessToken, refreshToken, user: userDTO };
   }
 
   async googleAuth(role: UserRole, credential: string) {
@@ -187,9 +192,9 @@ export class AuthService implements IAuthService {
       };
       
       if (role === UserRole.CANDIDATE) {
-        user = await this.#candidateRepository.createCandidate(userData);
+        user = await this.#candidateRepository.create(userData);
       } else {
-        user = await this.#rezulterRepository.createRezulter(userData);
+        user = await this.#rezulterRepository.create(userData);
       }
     }
 
@@ -198,7 +203,8 @@ export class AuthService implements IAuthService {
     }
 
     const { accessToken, refreshToken } = generateTokens(user, role);
-    return { token: accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, role } };
+    const userDTO = role === UserRole.CANDIDATE ? mapToCandidateDTO(user as ICandidate) : mapToRezulterDTO(user as IRezulter);
+    return { token: accessToken, refreshToken, user: userDTO };
   }
 
   async forgotPassword(role: UserRole, email: string) {
@@ -276,10 +282,11 @@ export class AuthService implements IAuthService {
     // Return new access token (and keep the same refresh token, or issue a new one)
     // Issuing a new refresh token (token rotation) increases security
     const tokens = generateTokens(user, role);
+    const userDTO = role === UserRole.CANDIDATE ? mapToCandidateDTO(user as ICandidate) : mapToRezulterDTO(user as IRezulter);
     return {
       token: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: { id: user._id, name: user.name, email: user.email, role }
+      user: userDTO
     };
   }
 }

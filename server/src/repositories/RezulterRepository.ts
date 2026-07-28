@@ -1,64 +1,35 @@
-import { Rezulter, IRezulter, RezulterRole } from '../models/Rezulter';
+import { Rezulter, IRezulter } from '../models/Rezulter';
 import { UserRole } from '../enums';
-import { Types } from 'mongoose';
 import { IRezulterRepository } from '../interfaces/repositories';
+import { BaseRepository } from './BaseRepository';
 
-export class RezulterRepository implements IRezulterRepository {
-  /**
-   * Creates a new Rezulter (Coordinator/rezulter)
-   */
-  async createRezulter(userData: Partial<IRezulter>): Promise<IRezulter> {
-    const newRezulter = new Rezulter({
-      ...userData,
-      role: userData.role || UserRole.REZULTER,
-    });
-    return await newRezulter.save();
+export class RezulterRepository extends BaseRepository<IRezulter> implements IRezulterRepository {
+  constructor() {
+    super(Rezulter);
   }
 
   /**
-   * Finds any Rezulter by email
+   * Creates a new Rezulter (Coordinator/rezulter)
    */
-  async findByEmail(email: string): Promise<IRezulter | null> {
-    return await Rezulter.findOne({ email });
+  async create(userData: Partial<IRezulter>): Promise<IRezulter> {
+    return await super.create({
+      ...userData,
+      role: userData.role || UserRole.REZULTER,
+    });
   }
 
   /**
    * Finds all Rezulters with pagination, search, sorting, and filtering
    */
-  async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: IRezulter[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }> {
-    const { page, limit, search, isActive, sortField = 'createdAt', sortOrder = 'desc' } = options;
-    const query: Record<string, unknown> = { role: UserRole.REZULTER };
-    
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
-    }
-    
-    if (isActive !== undefined) {
-      query.isActive = isActive;
-    }
+  async findAll(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: IRezulter[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }> {
+    return await super.findAll(options, { role: UserRole.REZULTER });
+  }
 
-    const skip = (page - 1) * limit;
-    
-    const sortParams: Record<string, 1 | -1> = {};
-    sortParams[sortField] = sortOrder === 'asc' ? 1 : -1;
-
-    const [data, totalItems] = await Promise.all([
-      Rezulter.find(query).sort(sortParams).skip(skip).limit(limit),
-      Rezulter.countDocuments(query)
-    ]);
-
-    return {
-      data,
-      pagination: {
-        totalItems,
-        totalPages: Math.ceil(totalItems / limit),
-        currentPage: page,
-        pageSize: limit
-      }
-    };
+  /**
+   * Get Rezulter Statistics
+   */
+  async getStats() {
+    return await super.getStats({ role: UserRole.REZULTER });
   }
 
   /**
@@ -68,32 +39,5 @@ export class RezulterRepository implements IRezulterRepository {
     // For now, simple find. In real-world, might join with sessions collection
     return await Rezulter.findById(rezulterId);
   }
-
-  /**
-   * Finds a Rezulter by ID
-   */
-  async findById(id: string): Promise<IRezulter | null> {
-    return await Rezulter.findById(id);
-  }
-
-  async toggleStatus(id: string): Promise<IRezulter | null> {
-    const rezulter = await Rezulter.findById(id);
-    if (!rezulter) return null;
-    
-    rezulter.isActive = !rezulter.isActive;
-    return await rezulter.save();
-  }
-
-  /**
-   * Get Rezulter Statistics
-   */
-  async getStats() {
-    const query = { role: UserRole.REZULTER as RezulterRole };
-    const [total, active, suspended] = await Promise.all([
-      Rezulter.countDocuments(query),
-      Rezulter.countDocuments({ ...query, isActive: true }),
-      Rezulter.countDocuments({ ...query, isActive: false })
-    ]);
-    return { total, active, suspended };
-  }
 }
+

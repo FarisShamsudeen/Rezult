@@ -1,9 +1,10 @@
 import { UserRole, OtpPurpose } from '../enums';
+import { CandidateResponseDTO, RezulterResponseDTO } from '../dtos/user.dto';
 
 export interface IAuthResponse {
   token?: string;
   refreshToken?: string;
-  user?: Record<string, unknown>;
+  user?: CandidateResponseDTO | RezulterResponseDTO;
   message?: string;
 }
 
@@ -18,16 +19,16 @@ export interface IAuthService {
 }
 
 export interface ICandidateService {
-  getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: unknown[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
-  createCandidateByAdmin(data: Record<string, unknown>): Promise<unknown>;
-  toggleStatus(id: string): Promise<unknown>;
+  getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: CandidateResponseDTO[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
+  createCandidateByAdmin(data: Record<string, unknown>): Promise<{ user: CandidateResponseDTO }>;
+  toggleStatus(id: string): Promise<CandidateResponseDTO>;
   getStats(): Promise<{ total: number; active: number; suspended: number }>;
 }
 
 export interface IRezulterService {
-  registerRezulter(data: Record<string, unknown>): Promise<{ user: unknown; inviteToken?: string; message?: string }>;
-  getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: unknown[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
-  createRezulterByAdmin(data: Record<string, unknown>): Promise<unknown>;
-  toggleStatus(id: string): Promise<unknown>;
+  registerRezulter(data: Record<string, unknown>): Promise<{ user: RezulterResponseDTO; inviteToken?: string; message?: string }>;
+  getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: RezulterResponseDTO[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
+  createRezulterByAdmin(data: Record<string, unknown>): Promise<{ user: RezulterResponseDTO }>;
+  toggleStatus(id: string): Promise<RezulterResponseDTO>;
   getStats(): Promise<{ total: number; active: number; suspended: number }>;
 }

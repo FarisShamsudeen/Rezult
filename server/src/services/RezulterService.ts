@@ -4,6 +4,7 @@ import { IRezulterRepository } from '../interfaces/repositories';
 import { IRezulterService } from '../interfaces/services';
 import { IRezulter } from '../models/Rezulter';
 import { UserRole, AuthProvider } from '../enums';
+import { mapToRezulterDTO } from '../dtos/user.dto';
 
 export class RezulterService implements IRezulterService {
   #rezulterRepository: IRezulterRepository;
@@ -12,16 +13,7 @@ export class RezulterService implements IRezulterService {
     this.#rezulterRepository = rezulterRepository;
   }
 
-  #shapeRezulter(rezulter: IRezulter) {
-    return {
-      _id: rezulter._id,
-      name: rezulter.name,
-      email: rezulter.email,
-      role: rezulter.role,
-      isActive: rezulter.isActive,
-      createdAt: (rezulter as unknown as Record<string, unknown>).createdAt,
-    };
-  }
+
 
   /**
    * Handles registering a new Coordinator/Rezulter workspace.
@@ -37,7 +29,7 @@ export class RezulterService implements IRezulterService {
     const passwordHash = await bcrypt.hash((data.password as string), salt);
 
     // Create the Rezulter
-    const newUser = await this.#rezulterRepository.createRezulter({
+    const newUser = await this.#rezulterRepository.create({
       name: (data.name as string),
       email: (data.email as string),
       passwordHash,
@@ -48,16 +40,16 @@ export class RezulterService implements IRezulterService {
     // Generate a unique Secret Join Code (for Entrants/Candidates)
     const inviteToken = crypto.randomBytes(4).toString('hex').toUpperCase();
 
-    return { user: this.#shapeRezulter(newUser), inviteToken };
+    return { user: mapToRezulterDTO(newUser), inviteToken };
   }
 
   /**
    * Fetch all rezulters (for Super Admin)
    */
   async getAllRezulters(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
-    const result = await this.#rezulterRepository.getAllRezulters(options);
+    const result = await this.#rezulterRepository.findAll(options);
     return {
-      data: result.data.map((rezulter) => this.#shapeRezulter(rezulter as IRezulter)),
+      data: result.data.map((rezulter) => mapToRezulterDTO(rezulter as IRezulter)),
       pagination: result.pagination
     };
   }
@@ -74,7 +66,7 @@ export class RezulterService implements IRezulterService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash((data.password as string), salt);
 
-    const newUser = await this.#rezulterRepository.createRezulter({
+    const newUser = await this.#rezulterRepository.create({
       name: (data.name as string),
       email: (data.email as string),
       passwordHash,
@@ -84,7 +76,7 @@ export class RezulterService implements IRezulterService {
       candidateIds: [],
     });
 
-    return this.#shapeRezulter(newUser);
+    return { user: mapToRezulterDTO(newUser) };
   }
 
   async toggleStatus(id: string) {
@@ -92,7 +84,7 @@ export class RezulterService implements IRezulterService {
     if (!updatedUser) {
       throw new Error('Rezulter not found.');
     }
-    return this.#shapeRezulter(updatedUser);
+    return mapToRezulterDTO(updatedUser);
   }
 
   async getStats() {
