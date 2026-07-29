@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Shield, ShieldCheck, Edit2, Key, Calendar } from 'lucide-react';
+import { User, Mail, Shield, ShieldCheck, Edit2, Key } from 'lucide-react';
 
 export function CandidateProfile() {
   const { user } = useAuth();

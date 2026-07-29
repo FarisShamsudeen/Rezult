@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
 import { authService } from '../services/auth.service';
@@ -23,7 +23,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (!canResend) {
       timer = setTimeout(() => {
         setCanResend(true);
@@ -208,7 +208,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
                   {otp.map((digit, index) => (
                     <input
                       key={index}
-                      ref={(el) => (inputRefs.current[index] = el)}
+                      ref={(el) => { inputRefs.current[index] = el; }}
                       type="text"
                       inputMode="numeric"
                       value={digit}
