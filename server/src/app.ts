@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { sendResponse } from './utils/responseHandler';
 import { errorHandler } from './middleware/error.middleware';
+import { globalLimiter } from './middleware/rateLimiter.middleware';
 import rezulterRoutes from './routes/rezulter.routes';
 import testRoutes from './routes/test.routes';
 import authRoutes from './routes/auth.routes';
@@ -18,6 +19,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Apply Global Rate Limiter to all API routes
+app.use(ENDPOINTS.API_BASE, globalLimiter);
 
 // Routes
 app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.REZULTERS.BASE}`, rezulterRoutes);
