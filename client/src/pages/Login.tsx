@@ -4,29 +4,47 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required').regex(/^\S+$/, 'Password cannot contain spaces')
+});
+
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export function Login() {
   const [activeTab, setActiveTab] = useState<'candidate' | 'rezulter'>('candidate');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const emailValue = watch('email', '');
+
   useEffect(() => {
     document.title = 'Rezult - Login Now';
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: LoginFormInputs) => {
     setError('');
     setIsLoading(true);
 
     try {
       const response = await authService.login({
-        email,
-        password,
+        email: data.email,
+        password: data.password,
         role: activeTab
       });
       login(response.data.user, response.data.token);
@@ -131,6 +149,7 @@ export function Login() {
                           </div>
                         ) : (
                           <button 
+                            type="button"
                             onClick={() => setActiveTab(tab)}
                             className="bg-[#102428] text-gray-400 hover:text-white px-5 py-1.5 rounded-full text-sm font-medium mb-2 transition-colors z-30 capitalize relative"
                           >
@@ -156,8 +175,20 @@ export function Login() {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <form onSubmit={handleSubmit}>
-                          {error && <div className="text-red-500 text-sm mb-4 text-center">{error}</div>}
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                          <AnimatePresence>
+                            {error && (
+                              <motion.div 
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                className="text-red-500 text-sm text-center bg-red-500/10 py-2 px-4 rounded-lg border border-red-500/20"
+                              >
+                                {error}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                          
                         {/* Email Field */}
                         <div className="mb-6">
                           <label className="block text-white text-sm mb-2.5 font-medium">
@@ -165,10 +196,21 @@ export function Login() {
                           </label>
                           <input 
                             type="email" 
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3.5 text-white outline-none focus:border-[#00FF87] transition-colors"
+                            {...register('email')}
+                            className={`w-full bg-black border ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3.5 text-white outline-none transition-colors`}
                           />
+                          <AnimatePresence>
+                            {errors.email && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.email.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Password Field */}
@@ -178,11 +220,21 @@ export function Login() {
                           </label>
                           <input 
                             type="password" 
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3.5 text-white outline-none focus:border-[#00FF87] transition-colors"
+                            {...register('password')}
+                            className={`w-full bg-black border ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3.5 text-white outline-none transition-colors`}
                           />
+                          <AnimatePresence>
+                            {errors.password && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.password.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Remember Me & Forgot Password */}
@@ -193,13 +245,13 @@ export function Login() {
                             </div>
                             <span className="text-white/90 text-sm font-medium">Remember Me</span>
                           </label>
-                          <Link to={`/${activeTab}/forgot-password`} state={{ email }} className="text-white/80 text-sm hover:text-[#00FF87] underline decoration-white/30 underline-offset-4 transition-colors">
+                          <Link to={`/${activeTab}/forgot-password`} state={{ email: emailValue }} className="text-white/80 text-sm hover:text-[#00FF87] underline decoration-white/30 underline-offset-4 transition-colors">
                             Forgot Password
                           </Link>
                         </div>
 
                         {/* Sign In Button */}
-                        <button type="submit" disabled={isLoading} className="relative w-full py-3.5 rounded-full border border-[#00F2FE]/40 hover:border-transparent overflow-hidden group transition-all shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.3)]">
+                        <button type="submit" disabled={isLoading} className="relative w-full py-3.5 rounded-full border border-[#00F2FE]/40 hover:border-transparent overflow-hidden group transition-all shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.3)] disabled:opacity-70 disabled:cursor-not-allowed">
                           <div className="absolute inset-0 bg-gradient-to-r from-[#003B30] to-[#001829] transition-opacity duration-300 group-hover:opacity-0" />
                           <div className="absolute inset-0 bg-gradient-to-r from-[#00FF87] via-[#00F2FE] to-[#0072FF] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                           <span className="relative z-10 text-white font-medium group-hover:font-semibold text-lg transition-all">{isLoading ? 'Signing in...' : 'Sign in'}</span>

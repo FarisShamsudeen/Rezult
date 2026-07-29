@@ -4,40 +4,53 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const signupSchema = z.object({
+  name: z.string().trim().min(1, 'Full Name is required'),
+  email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters').regex(/^\S+$/, 'Password cannot contain spaces'),
+  confirmPassword: z.string().min(1, 'Please confirm your password')
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type SignupFormInputs = z.infer<typeof signupSchema>;
 
 export function Signup() {
   const [activeTab, setActiveTab] = useState<'candidate' | 'rezulter'>('candidate');
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormInputs>({
+    resolver: zodResolver(signupSchema),
+  });
+
   useEffect(() => {
     document.title = 'Rezult - Register Now';
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignupFormInputs) => {
     setError('');
-    
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
     setIsLoading(true);
+
     try {
       await authService.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+        name: data.name,
+        email: data.email,
+        password: data.password,
         role: activeTab
       });
-      navigate(`/${activeTab}/verify-otp`, { state: { email: formData.email, purpose: 'registration' } });
+      navigate(`/${activeTab}/verify-otp`, { state: { email: data.email, purpose: 'registration' } });
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {
@@ -132,6 +145,7 @@ export function Signup() {
                           </div>
                         ) : (
                           <button 
+                            type="button"
                             onClick={() => setActiveTab(tab)}
                             className="bg-[#102428] text-gray-400 hover:text-white px-5 py-1.5 rounded-full text-sm font-medium mb-2 transition-colors z-30 capitalize relative"
                           >
@@ -157,22 +171,42 @@ export function Signup() {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <form onSubmit={handleSubmit}>
-                          {error && <div className="text-red-500 text-sm mb-4 text-center">{error}</div>}
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                          <AnimatePresence>
+                            {error && (
+                              <motion.div 
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                className="text-red-500 text-sm text-center bg-red-500/10 py-2 px-4 rounded-lg border border-red-500/20"
+                              >
+                                {error}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                           
-                          {/* Full Name Field */}
+                        {/* Full Name Field */}
                         <div className="mb-5">
                           <label className="block text-white text-sm mb-2 font-medium">
                             Full Name
                           </label>
                           <input 
                             type="text" 
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3 text-white outline-none focus:border-[#00FF87] transition-colors text-sm"
+                            {...register('name')}
+                            className={`w-full bg-black border ${errors.name ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3 text-white outline-none transition-colors text-sm`}
                           />
+                          <AnimatePresence>
+                            {errors.name && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.name.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Email Field */}
@@ -182,12 +216,21 @@ export function Signup() {
                           </label>
                           <input 
                             type="email" 
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3 text-white outline-none focus:border-[#00FF87] transition-colors text-sm"
+                            {...register('email')}
+                            className={`w-full bg-black border ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3 text-white outline-none transition-colors text-sm`}
                           />
+                          <AnimatePresence>
+                            {errors.email && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.email.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Password Field */}
@@ -197,12 +240,21 @@ export function Signup() {
                           </label>
                           <input 
                             type="password" 
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3 text-white outline-none focus:border-[#00FF87] transition-colors text-sm"
+                            {...register('password')}
+                            className={`w-full bg-black border ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3 text-white outline-none transition-colors text-sm`}
                           />
+                          <AnimatePresence>
+                            {errors.password && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.password.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Confirm Password Field */}
@@ -212,16 +264,25 @@ export function Signup() {
                           </label>
                           <input 
                             type="password" 
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                            className="w-full bg-black border border-[#00F2FE]/40 rounded-full px-5 py-3 text-white outline-none focus:border-[#00FF87] transition-colors text-sm"
+                            {...register('confirmPassword')}
+                            className={`w-full bg-black border ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-[#00F2FE]/40 focus:border-[#00FF87]'} rounded-full px-5 py-3 text-white outline-none transition-colors text-sm`}
                           />
+                          <AnimatePresence>
+                            {errors.confirmPassword && (
+                              <motion.p
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="text-red-500 text-xs ml-4"
+                              >
+                                {errors.confirmPassword.message}
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         {/* Sign Up Button */}
-                        <button type="submit" disabled={isLoading} className="relative w-full py-3 rounded-full border border-[#00F2FE]/40 hover:border-transparent overflow-hidden group transition-all shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.3)]">
+                        <button type="submit" disabled={isLoading} className="relative w-full py-3 rounded-full border border-[#00F2FE]/40 hover:border-transparent overflow-hidden group transition-all shadow-[0_0_15px_rgba(0,242,254,0.1)] hover:shadow-[0_0_25px_rgba(0,242,254,0.3)] disabled:opacity-70 disabled:cursor-not-allowed">
                           <div className="absolute inset-0 bg-gradient-to-r from-[#003B30] to-[#001829] transition-opacity duration-300 group-hover:opacity-0" />
                           <div className="absolute inset-0 bg-gradient-to-r from-[#00FF87] via-[#00F2FE] to-[#0072FF] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                           <span className="relative z-10 text-white font-medium group-hover:font-semibold text-base transition-all">{isLoading ? 'Loading...' : 'Sign up'}</span>

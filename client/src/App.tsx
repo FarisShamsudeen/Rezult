@@ -13,6 +13,7 @@ import { Assessments as CandidateAssessments } from './pages/candidate/Assessmen
 import { Rezulters as CandidateRezulters } from './pages/candidate/Rezulters';
 import { Calendar as CandidateCalendar } from './pages/candidate/Calendar';
 import { Concerns as CandidateConcerns } from './pages/candidate/Concerns';
+import { CandidateProfile } from './pages/candidate/Profile';
 
 // Rezulter imports
 import { RezulterDashboard, RezulterLayout } from './pages/rezulter/Dashboard';
@@ -99,6 +100,14 @@ const RoleBasedSupport = () => {
   return <div className="text-white p-10 font-bold">Candidate Support Placeholder</div>;
 };
 
+// Role-based Profile Wrapper
+const RoleBasedProfile = () => {
+  const { user } = useAuth();
+  if (user?.role === 'rezulter') return <div className="text-white p-10 font-bold">Rezulter Profile Placeholder</div>;
+  // Default to candidate
+  return <CandidateProfile />;
+};
+
 function App() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
@@ -136,6 +145,7 @@ function App() {
               <Route path="/concerns" element={<PageTransition><CandidateConcerns /></PageTransition>} />
               <Route path="/candidates" element={<PageTransition><RoleBasedCandidates /></PageTransition>} />
               <Route path="/support" element={<PageTransition><RoleBasedSupport /></PageTransition>} />
+              <Route path="/profile" element={<PageTransition><RoleBasedProfile /></PageTransition>} />
             </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </>

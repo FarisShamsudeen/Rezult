@@ -14,7 +14,7 @@ const OTPSchema = new Schema<IOTP>({
   otp: { type: String, required: true },
   role: { type: String, required: true, enum: [UserRole.CANDIDATE, UserRole.REZULTER] },
   purpose: { type: String, required: true, enum: Object.values(OtpPurpose) },
-  createdAt: { type: Date, default: Date.now, expires: 300 } // 300 seconds = 5 minutes
+  createdAt: { type: Date, default: Date.now, expires: 60 } // 60 seconds = 1 minute
 });
 
 export const OTP = model<IOTP>('OTP', OTPSchema);

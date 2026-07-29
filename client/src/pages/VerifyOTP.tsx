@@ -27,7 +27,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
     if (!canResend) {
       timer = setTimeout(() => {
         setCanResend(true);
-      }, 30000);
+      }, 60000);
     }
     return () => clearTimeout(timer);
   }, [canResend, resendKey]);
@@ -170,7 +170,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
               background-clip: text;
               -webkit-text-fill-color: transparent;
               color: transparent;
-              animation: fillText 30s linear forwards;
+              animation: fillText 60s linear forwards;
             }
           `}</style>
 
