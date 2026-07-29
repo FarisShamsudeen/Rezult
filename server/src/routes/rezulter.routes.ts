@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { RezulterController } from '../controllers/RezulterController';
 import { RezulterService } from '../services/RezulterService';
 import { RezulterRepository } from '../repositories/RezulterRepository';
-import { verifyToken as authMiddleware } from '../middleware/auth.middleware';
+import { verifyToken as authMiddleware, requireActiveUser } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../enums';
 import { ENDPOINTS } from '../constants/endpoints';
@@ -18,9 +18,9 @@ const rezulterController = new RezulterController(rezulterService);
 router.post(ENDPOINTS.REZULTERS.REGISTER, rezulterController.register);
 
 // Super Admin protected routes
-router.get(ENDPOINTS.REZULTERS.STATS, authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.getStats);
-router.get(ENDPOINTS.REZULTERS.ROOT, authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.getAllRezulters);
-router.post(ENDPOINTS.REZULTERS.ROOT, authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.createRezulter);
-router.patch(ENDPOINTS.REZULTERS.TOGGLE_STATUS, authMiddleware, requireRole(UserRole.SUPER_ADMIN), rezulterController.toggleStatus);
+router.get(ENDPOINTS.REZULTERS.STATS, authMiddleware, requireActiveUser, requireRole(UserRole.SUPER_ADMIN), rezulterController.getStats);
+router.get(ENDPOINTS.REZULTERS.ROOT, authMiddleware, requireActiveUser, requireRole(UserRole.SUPER_ADMIN), rezulterController.getAllRezulters);
+router.post(ENDPOINTS.REZULTERS.ROOT, authMiddleware, requireActiveUser, requireRole(UserRole.SUPER_ADMIN), rezulterController.createRezulter);
+router.patch(ENDPOINTS.REZULTERS.TOGGLE_STATUS, authMiddleware, requireActiveUser, requireRole(UserRole.SUPER_ADMIN), rezulterController.toggleStatus);
 
 export default router;

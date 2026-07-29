@@ -32,7 +32,7 @@ export function SuperAdminRezulters() {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
       setPage(1);
-    }, 500);
+    }, 1000);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 

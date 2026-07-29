@@ -1,4 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { BlockedModal } from '../components/modals/BlockedModal';
+import { api } from '../services/api';
 
 interface User {
   id: string;
@@ -20,6 +23,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // Check local storage for token and user on mount
@@ -44,6 +49,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const checkSession = async () => {
+      if (token) {
+        try {
+          await api.get('/auth/me');
+        } catch (error) {
+          // api.ts will handle the ACCOUNT_BLOCKED and dispatch the event
+        }
+      }
+    };
+
+    if (token) {
+      // Check immediately and then every 15 seconds
+      checkSession();
+      intervalId = setInterval(checkSession, 15000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [token, location.pathname]);
+
+  useEffect(() => {
+    const handleAccountBlocked = () => {
+      setIsBlockedModalOpen(true);
+    };
+
+    window.addEventListener('accountBlocked', handleAccountBlocked);
+
+    return () => {
+      window.removeEventListener('accountBlocked', handleAccountBlocked);
+    };
+  }, []);
+
   const login = (userData: User, newToken: string) => {
     setUser(userData);
     setToken(newToken);
@@ -58,9 +99,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
+  const handleBlockedConfirm = () => {
+    setIsBlockedModalOpen(false);
+    logout();
+    window.location.href = '/login';
+  };
+
   return (
     <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
       {children}
+      <BlockedModal isOpen={isBlockedModalOpen} onConfirm={handleBlockedConfirm} />
     </AuthContext.Provider>
   );
 };

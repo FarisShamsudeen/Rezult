@@ -11,6 +11,7 @@ export const ENDPOINTS = {
         RESET_PASSWORD: '/reset-password',
         REFRESH_TOKEN: '/refresh-token',
         LOGOUT: '/logout',
+        ME: '/me',
     },
     CANDIDATES: {
         BASE: '/candidates',

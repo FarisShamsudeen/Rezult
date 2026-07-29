@@ -138,6 +138,10 @@ export class AuthService implements IAuthService {
       throw new Error('Please verify your email first');
     }
 
+    if (user.isActive === false) {
+      throw new Error('ACCOUNT_BLOCKED');
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash || '');
     if (!isMatch) {
       throw new Error('Invalid credentials');
@@ -200,6 +204,10 @@ export class AuthService implements IAuthService {
 
     if (!user) {
       throw new Error('Failed to retrieve or create user');
+    }
+
+    if (user.isActive === false) {
+      throw new Error('ACCOUNT_BLOCKED');
     }
 
     const { accessToken, refreshToken } = generateTokens(user, role);
@@ -277,6 +285,10 @@ export class AuthService implements IAuthService {
 
     if (!user) {
       throw new Error('User not found');
+    }
+
+    if (user.isActive === false) {
+      throw new Error('ACCOUNT_BLOCKED');
     }
 
     // Return new access token (and keep the same refresh token, or issue a new one)

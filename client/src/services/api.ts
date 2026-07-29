@@ -17,6 +17,14 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.response?.data?.error === 'ACCOUNT_BLOCKED') {
+      if (!originalRequest.url?.includes('/auth/login') && !originalRequest.url?.includes('/auth/google')) {
+        window.dispatchEvent(new CustomEvent('accountBlocked'));
+      }
+      return Promise.reject(error);
+    }
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&

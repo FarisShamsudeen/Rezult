@@ -151,5 +151,9 @@ export class AuthController {
     });
     sendResponse(res, StatusCode.OK, true, { message: 'Logged out successfully' });
   }
+
+  getMe = async (req: Request, res: Response, next: NextFunction) => {
+    sendResponse(res, StatusCode.OK, true, { user: (req as any).user });
+  }
 }
 
