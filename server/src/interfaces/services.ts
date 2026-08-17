@@ -15,6 +15,7 @@ export interface IAuthService {
   googleAuth(role: UserRole, credential: string): Promise<IAuthResponse>;
   forgotPassword(role: UserRole, email: string): Promise<IAuthResponse>;
   resetPassword(role: UserRole, email: string, newPassword: string): Promise<IAuthResponse>;
+  resendOTP(role: UserRole, email: string, purpose: OtpPurpose): Promise<IAuthResponse>;
   refreshAccessToken(refreshToken: string): Promise<IAuthResponse>;
 }
 

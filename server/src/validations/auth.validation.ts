@@ -17,6 +17,12 @@ export const verifyOTPSchema = z.object({
   purpose: z.enum([OtpPurpose.REGISTRATION, OtpPurpose.FORGOT_PASSWORD])
 });
 
+export const resendOTPSchema = z.object({
+  email: z.string().email(),
+  role: roleSchema,
+  purpose: z.enum([OtpPurpose.REGISTRATION, OtpPurpose.FORGOT_PASSWORD])
+});
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string(),

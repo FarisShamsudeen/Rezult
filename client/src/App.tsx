@@ -60,6 +60,16 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   return <>{children}</>;
 };
 
+// Guest Route Component (redirects to dashboard if already authenticated)
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    if (user?.role === 'super_admin') return <Navigate to="/super-admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+};
+
 // Role-based Layout Wrapper (for candidate & rezulter)
 const RoleBasedLayout = () => {
   const { user } = useAuth();
@@ -152,15 +162,15 @@ function App() {
         ) : (
           <Route path="/" element={<PageTransition><Home /></PageTransition>} />
         )}
-        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-        <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
+        <Route path="/login" element={<GuestRoute><PageTransition><Login /></PageTransition></GuestRoute>} />
+        <Route path="/signup" element={<GuestRoute><PageTransition><Signup /></PageTransition></GuestRoute>} />
         <Route path="/docs" element={<PageTransition><Docs /></PageTransition>} />
-        <Route path="/candidate/forgot-password" element={<PageTransition><ForgotPassword role="candidate" /></PageTransition>} />
-        <Route path="/rezulter/forgot-password" element={<PageTransition><ForgotPassword role="rezulter" /></PageTransition>} />
-        <Route path="/candidate/verify-otp" element={<PageTransition><VerifyOTP role="candidate" /></PageTransition>} />
-        <Route path="/rezulter/verify-otp" element={<PageTransition><VerifyOTP role="rezulter" /></PageTransition>} />
-        <Route path="/candidate/reset-password" element={<PageTransition><ResetPassword role="candidate" /></PageTransition>} />
-        <Route path="/rezulter/reset-password" element={<PageTransition><ResetPassword role="rezulter" /></PageTransition>} />
+        <Route path="/candidate/forgot-password" element={<GuestRoute><PageTransition><ForgotPassword role="candidate" /></PageTransition></GuestRoute>} />
+        <Route path="/rezulter/forgot-password" element={<GuestRoute><PageTransition><ForgotPassword role="rezulter" /></PageTransition></GuestRoute>} />
+        <Route path="/candidate/verify-otp" element={<GuestRoute><PageTransition><VerifyOTP role="candidate" /></PageTransition></GuestRoute>} />
+        <Route path="/rezulter/verify-otp" element={<GuestRoute><PageTransition><VerifyOTP role="rezulter" /></PageTransition></GuestRoute>} />
+        <Route path="/candidate/reset-password" element={<GuestRoute><PageTransition><ResetPassword role="candidate" /></PageTransition></GuestRoute>} />
+        <Route path="/rezulter/reset-password" element={<GuestRoute><PageTransition><ResetPassword role="rezulter" /></PageTransition></GuestRoute>} />
         <Route path="*" element={<PageTransition><Home /></PageTransition>} />
       </Routes>
     </AnimatePresence>

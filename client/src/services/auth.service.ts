@@ -11,6 +11,11 @@ export const authService = {
     return response.data;
   },
 
+  async resendOTP(data: any) {
+    const response = await api.post('/auth/resend-otp', data);
+    return response.data;
+  },
+
   async login(data: any) {
     const response = await api.post('/auth/login', data);
     return response.data;

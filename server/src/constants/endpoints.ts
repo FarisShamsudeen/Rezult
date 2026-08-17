@@ -5,6 +5,7 @@ export const ENDPOINTS = {
         BASE: '/auth',
         SIGNUP: '/signup',
         VERIFY_OTP: '/verify-otp',
+        RESEND_OTP: '/resend-otp',
         LOGIN: '/login',
         GOOGLE: '/google',
         FORGOT_PASSWORD: '/forgot-password',

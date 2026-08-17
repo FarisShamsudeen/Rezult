@@ -126,6 +126,38 @@ export class AuthService implements IAuthService {
     return { message: 'OTP verified successfully' };
   }
 
+  async resendOTP(role: UserRole, email: string, purpose: OtpPurpose) {
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
+    const user = await Repository.findByEmail(email);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (purpose === OtpPurpose.REGISTRATION && user.isEmailVerified) {
+      throw new Error('Email is already verified');
+    }
+
+    const otp = generateOTP();
+    console.log(`\n========================================`);
+    console.log(`🔑 DEVELOPMENT OTP for ${email} (${purpose}): ${otp}`);
+    console.log(`========================================\n`);
+
+    await OTP.create({
+      email,
+      otp,
+      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
+      purpose
+    });
+
+    const subject = purpose === OtpPurpose.REGISTRATION ? 'Rezult - Verify Your Email (Resend OTP)' : 'Rezult - Password Reset OTP (Resend OTP)';
+    const message = purpose === OtpPurpose.REGISTRATION ? `Your OTP for registration is: ${otp}` : `Your OTP for password reset is: ${otp}`;
+
+    await sendEmail(email, subject, message);
+
+    return { message: 'OTP resent successfully to email' };
+  }
+
   async login(role: UserRole, email: string, password: string) {
     const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);

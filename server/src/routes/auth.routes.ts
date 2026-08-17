@@ -18,6 +18,7 @@ const authController = new AuthController(authService);
 
 router.post(ENDPOINTS.AUTH.SIGNUP, authLimiter, authController.register);
 router.post(ENDPOINTS.AUTH.VERIFY_OTP, otpLimiter, authController.verifyOTP);
+router.post(ENDPOINTS.AUTH.RESEND_OTP, otpLimiter, authController.resendOTP);
 router.post(ENDPOINTS.AUTH.LOGIN, authLimiter, authController.login);
 router.post(ENDPOINTS.AUTH.GOOGLE, authLimiter, authController.googleAuth);
 router.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, authLimiter, authController.forgotPassword);

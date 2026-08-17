@@ -5,6 +5,7 @@ import { sendResponse } from '../utils/responseHandler';
 import {
   registerSchema,
   verifyOTPSchema,
+  resendOTPSchema,
   loginSchema,
   googleAuthSchema,
   forgotPasswordSchema,
@@ -51,6 +52,20 @@ export class AuthController {
         this.#setRefreshCookie(res, result.refreshToken);
         delete result.refreshToken;
       }
+      sendResponse(res, StatusCode.OK, true, result);
+    } catch (error: unknown) {
+      if (error instanceof z.ZodError) {
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error.issues.map(e => e.message).join(', '));
+      } else {
+        sendResponse(res, StatusCode.BAD_REQUEST, false, undefined, error instanceof Error ? error.message : 'Unknown error');
+      }
+    }
+  }
+
+  resendOTP = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = resendOTPSchema.parse(req.body);
+      const result = await this.#authService.resendOTP(data.role, (data.email as string), data.purpose);
       sendResponse(res, StatusCode.OK, true, result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) {

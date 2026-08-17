@@ -121,8 +121,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
       if (purpose === 'forgot_password') {
         await authService.forgotPassword({ email, role });
       } else {
-        // TODO: Implement a resend-otp API for registration in the backend
-        // and call it here. For now we just restart the timer.
+        await authService.resendOTP({ email, role, purpose });
       }
       setCanResend(false);
       setResendKey(prev => prev + 1);
@@ -237,7 +236,7 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
                     className={`font-bold transition-colors ${
                       canResend 
                         ? 'text-white hover:text-[#00FF87]' 
-                        : 'resend-animating cursor-not-allowed'
+                        : 'resend-animating cursor-progress'
                     }`}
                   >
                     Resend Code
