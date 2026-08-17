@@ -4,7 +4,9 @@ import { UserRole, OtpPurpose } from '../enums';
 const roleSchema = z.enum([UserRole.CANDIDATE, UserRole.REZULTER]);
 
 export const registerSchema = z.object({
-  name: z.string().min(2, "Name is too short"),
+  name: z.string()
+    .min(2, "Name is too short")
+    .regex(/^[A-Za-z\s]+$/, "Name can only contain letters and spaces"),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: roleSchema
