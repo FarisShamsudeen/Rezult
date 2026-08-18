@@ -12,9 +12,15 @@ export interface IBaseRepository<T> {
 }
 
 export interface ICandidateRepository extends IBaseRepository<ICandidate> {
-  joinWorkspace(candidateId: string | Types.ObjectId, rezulterId: string | Types.ObjectId): Promise<void>;
 }
 
 export interface IRezulterRepository extends IBaseRepository<IRezulter> {
   findWithActiveSessions(rezulterId: string): Promise<IRezulter | null>;
+  addCandidateToWorkspace(rezulterId: string | Types.ObjectId, candidateId: string | Types.ObjectId): Promise<void>;
+}
+
+export interface IOtpRepository {
+  create(data: { email: string; otp: string; role: string; purpose: string }): Promise<any>;
+  findValidOtp(email: string, otp: string, role: string, purpose: string): Promise<any | null>;
+  delete(id: string): Promise<void>;
 }

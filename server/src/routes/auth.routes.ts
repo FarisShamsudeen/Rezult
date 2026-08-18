@@ -4,16 +4,19 @@ import { AuthController } from '../controllers/AuthController';
 import { AuthService } from '../services/AuthService';
 import { CandidateRepository } from '../repositories/CandidateRepository';
 import { RezulterRepository } from '../repositories/RezulterRepository';
+import { OtpRepository } from '../repositories/OtpRepository';
+import { OtpService } from '../services/OtpService';
 import { ENDPOINTS } from '../constants/endpoints';
 
 import { authLimiter, otpLimiter } from '../middleware/rateLimiter.middleware';
 
 const router = Router();
 
-// Composition Root
 const candidateRepository = new CandidateRepository();
 const rezulterRepository = new RezulterRepository();
-const authService = new AuthService(candidateRepository, rezulterRepository);
+const otpRepository = new OtpRepository();
+const otpService = new OtpService(otpRepository);
+const authService = new AuthService(candidateRepository, rezulterRepository, otpService);
 const authController = new AuthController(authService);
 
 router.post(ENDPOINTS.AUTH.SIGNUP, authLimiter, authController.register);
@@ -25,6 +28,6 @@ router.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, authLimiter, authController.forgotPa
 router.post(ENDPOINTS.AUTH.RESET_PASSWORD, authLimiter, authController.resetPassword);
 router.post(ENDPOINTS.AUTH.REFRESH_TOKEN, authController.refreshToken);
 router.post(ENDPOINTS.AUTH.LOGOUT, authController.logout);
-router.get(ENDPOINTS.AUTH.ME, verifyToken, requireActiveUser, authController.getMe);
+router.get(ENDPOINTS.AUTH.ME, verifyToken, requireActiveUser(authService), authController.getMe);
 
 export default router;

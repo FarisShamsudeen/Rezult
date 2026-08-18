@@ -1,5 +1,6 @@
 import { Rezulter, IRezulter } from '../models/Rezulter';
 import { UserRole } from '../enums';
+import { Types } from 'mongoose';
 import { IRezulterRepository } from '../interfaces/repositories';
 import { BaseRepository } from './BaseRepository';
 
@@ -38,6 +39,15 @@ export class RezulterRepository extends BaseRepository<IRezulter> implements IRe
   async findWithActiveSessions(rezulterId: string): Promise<IRezulter | null> {
     // For now, simple find. In real-world, might join with sessions collection
     return await Rezulter.findById(rezulterId);
+  }
+
+  /**
+   * Adds a candidate to a Rezulter's workspace
+   */
+  async addCandidateToWorkspace(rezulterId: string | Types.ObjectId, candidateId: string | Types.ObjectId): Promise<void> {
+    await Rezulter.findByIdAndUpdate(rezulterId, {
+      $addToSet: { candidateIds: candidateId }
+    });
   }
 }
 

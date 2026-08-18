@@ -2,9 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { ICandidateRepository, IRezulterRepository } from '../interfaces/repositories';
-import { IAuthService } from '../interfaces/services';
-import { OTP } from '../models/OTP';
-import { sendEmail } from '../utils/emailService';
+import { IAuthService, IOtpService } from '../interfaces/services';
 import { UserRole, AuthProvider, OtpPurpose } from '../enums';
 import { mapToCandidateDTO, mapToRezulterDTO } from '../dtos/user.dto';
 import { ICandidate } from '../models/Candidate';
@@ -14,9 +12,6 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback_access_secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret';
 
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
 
 const generateTokens = (user: Record<string, unknown> | import("mongoose").Document, role: string) => {
   const accessToken = jwt.sign({ id: user._id, role }, JWT_ACCESS_SECRET, { expiresIn: '15m' });
@@ -28,12 +23,16 @@ export class AuthService implements IAuthService {
   #candidateRepository: ICandidateRepository;
   #rezulterRepository: IRezulterRepository;
 
+  #otpService: IOtpService;
+
   constructor(
     candidateRepository: ICandidateRepository,
-    rezulterRepository: IRezulterRepository
+    rezulterRepository: IRezulterRepository,
+    otpService: IOtpService
   ) {
     this.#candidateRepository = candidateRepository;
     this.#rezulterRepository = rezulterRepository;
+    this.#otpService = otpService;
   }
 
   async register(role: UserRole, data: Record<string, unknown>) {
@@ -73,30 +72,14 @@ export class AuthService implements IAuthService {
       }
     }
 
-    const otp = generateOTP();
-    console.log(`\n========================================`);
-    console.log(`🔑 DEVELOPMENT OTP for ${(data.email as string)}: ${otp}`);
-    console.log(`========================================\n`);
-
-    await OTP.create({
-      email: (data.email as string),
-      otp,
-      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
-      purpose: OtpPurpose.REGISTRATION
-    });
-
-    await sendEmail(
-      (data.email as string),
-      'Welcome to Rezult - Verify Your Email',
-      `Your OTP for registration is: ${otp}`
-    );
+    await this.#otpService.sendOtp((data.email as string), role, OtpPurpose.REGISTRATION);
 
     return { message: 'OTP sent to email. Please verify.' };
   }
 
   async verifyOTP(role: UserRole, email: string, otp: string, purpose: OtpPurpose) {
-    const otpRecord = await OTP.findOne({ email, otp, role: role as (UserRole.CANDIDATE | UserRole.REZULTER), purpose });
-    if (!otpRecord) {
+    const isValid = await this.#otpService.verifyOtp(email, otp, role, purpose);
+    if (!isValid) {
       throw new Error('Invalid or expired OTP');
     }
 
@@ -112,8 +95,7 @@ export class AuthService implements IAuthService {
       await user.save();
     }
 
-    // Delete the OTP record as it's been used
-    await OTP.deleteOne({ _id: otpRecord._id });
+
 
     if (purpose === OtpPurpose.REGISTRATION) {
       const { accessToken, refreshToken } = generateTokens(user, role);
@@ -121,8 +103,6 @@ export class AuthService implements IAuthService {
       return { token: accessToken, refreshToken, user: userDTO };
     }
     
-    // For forgot password, we might return a temporary token or just success message
-    // returning success allows them to proceed to ResetPassword step
     return { message: 'OTP verified successfully' };
   }
 
@@ -138,22 +118,7 @@ export class AuthService implements IAuthService {
       throw new Error('Email is already verified');
     }
 
-    const otp = generateOTP();
-    console.log(`\n========================================`);
-    console.log(`🔑 DEVELOPMENT OTP for ${email} (${purpose}): ${otp}`);
-    console.log(`========================================\n`);
-
-    await OTP.create({
-      email,
-      otp,
-      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
-      purpose
-    });
-
-    const subject = purpose === OtpPurpose.REGISTRATION ? 'Rezult - Verify Your Email (Resend OTP)' : 'Rezult - Password Reset OTP (Resend OTP)';
-    const message = purpose === OtpPurpose.REGISTRATION ? `Your OTP for registration is: ${otp}` : `Your OTP for password reset is: ${otp}`;
-
-    await sendEmail(email, subject, message);
+    await this.#otpService.sendOtp(email, role, purpose);
 
     return { message: 'OTP resent successfully to email' };
   }
@@ -259,23 +224,7 @@ export class AuthService implements IAuthService {
       throw new Error('Please login with Google');
     }
 
-    const otp = generateOTP();
-    console.log(`\n========================================`);
-    console.log(`🔑 DEVELOPMENT OTP for ${email} (Forgot Password): ${otp}`);
-    console.log(`========================================\n`);
-
-    await OTP.create({
-      email,
-      otp,
-      role: role as (UserRole.CANDIDATE | UserRole.REZULTER),
-      purpose: OtpPurpose.FORGOT_PASSWORD
-    });
-
-    await sendEmail(
-      email,
-      'Rezult - Password Reset OTP',
-      `Your OTP for password reset is: ${otp}`
-    );
+    await this.#otpService.sendOtp(email, role, OtpPurpose.FORGOT_PASSWORD);
 
     return { message: 'Password reset OTP sent to email' };
   }
@@ -332,6 +281,13 @@ export class AuthService implements IAuthService {
       refreshToken: tokens.refreshToken,
       user: userDTO
     };
+  }
+
+  async checkUserActiveStatus(id: string, role: string): Promise<boolean> {
+    const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
+    const user = await Repository.findById(id);
+    if (!user) return false;
+    return user.isActive !== false;
   }
 }
 

@@ -8,6 +8,11 @@ export interface IAuthResponse {
   message?: string;
 }
 
+export interface IOtpService {
+  sendOtp(email: string, role: UserRole, purpose: OtpPurpose): Promise<void>;
+  verifyOtp(email: string, otp: string, role: UserRole, purpose: OtpPurpose): Promise<boolean>;
+}
+
 export interface IAuthService {
   register(role: UserRole, data: Record<string, unknown>): Promise<IAuthResponse>;
   verifyOTP(role: UserRole, email: string, otp: string, purpose: OtpPurpose): Promise<IAuthResponse>;
