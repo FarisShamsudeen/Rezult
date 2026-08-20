@@ -4,8 +4,10 @@ import {
   Eye, Trash2, Link as LinkIcon, Sigma,
   ChevronLeft, ChevronRight, MoreHorizontal
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function RezulterAssessments() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   const assessments = [
@@ -76,7 +78,7 @@ export function RezulterAssessments() {
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border-2 border-[#0A0D14]"></span>
           </button>
           
-          <button className="bg-[#00EBD5] text-black px-6 py-2.5 rounded-[40px] font-bold text-[14px] flex items-center gap-2 hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,235,213,0.3)]">
+          <button onClick={() => navigate('/assessments/create')} className="bg-[#00EBD5] text-black px-6 py-2.5 rounded-[40px] font-bold text-[14px] flex items-center gap-2 hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,235,213,0.3)]">
             <Plus className="w-4 h-4" />
             Create New Assessment
           </button>

@@ -18,6 +18,7 @@ import { CandidateProfile } from './pages/candidate/Profile';
 // Rezulter imports
 import { RezulterDashboard, RezulterLayout } from './pages/rezulter/Dashboard';
 import { RezulterAssessments } from './pages/rezulter/Assessments';
+import { RezulterCreateAssessment } from './pages/rezulter/CreateAssessment';
 import { RezulterCandidates } from './pages/rezulter/Candidates';
 import { RezulterHelpAndSupport } from './pages/rezulter/HelpAndSupport';
 
@@ -94,6 +95,14 @@ const RoleBasedAssessments = () => {
   return <CandidateAssessments />;
 };
 
+// Role-based Create Assessment Wrapper
+const RoleBasedCreateAssessment = () => {
+  const { user } = useAuth();
+  if (user?.role === 'rezulter') return <RezulterCreateAssessment />;
+  // Default to candidate - redirect since they shouldn't create assessments
+  return <Navigate to="/assessments" replace />;
+};
+
 // Role-based Candidates Wrapper
 const RoleBasedCandidates = () => {
   const { user } = useAuth();
@@ -150,6 +159,7 @@ function App() {
               {/* Note: We currently load Candidate-specific subpages into the router for all roles as a fallback. 
                   In the future, we will separate these completely. */}
               <Route path="/assessments" element={<PageTransition><RoleBasedAssessments /></PageTransition>} />
+              <Route path="/assessments/create" element={<PageTransition><RoleBasedCreateAssessment /></PageTransition>} />
               <Route path="/rezulters" element={<PageTransition><CandidateRezulters /></PageTransition>} />
               <Route path="/calendar" element={<PageTransition><CandidateCalendar /></PageTransition>} />
               <Route path="/concerns" element={<PageTransition><CandidateConcerns /></PageTransition>} />

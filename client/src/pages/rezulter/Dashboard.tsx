@@ -10,6 +10,7 @@ import { LogoutModal } from '../../components/modals/LogoutModal';
 
 export function RezulterDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const activeExaminations = [
     {
@@ -44,7 +45,7 @@ export function RezulterDashboard() {
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#00EBD5] rounded-full border-2 border-[#0A0D14]"></span>
           </button>
 
-          <button className="bg-[#00EBD5] text-black px-6 py-2.5 rounded-[40px] font-bold text-[14px] flex items-center gap-2 hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,235,213,0.3)]">
+          <button onClick={() => navigate('/assessments/create')} className="bg-[#00EBD5] text-black px-6 py-2.5 rounded-[40px] font-bold text-[14px] flex items-center gap-2 hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,235,213,0.3)]">
             <Plus className="w-4 h-4" />
             Create New Assessment
           </button>
@@ -194,7 +195,7 @@ export function RezulterDashboard() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <button className="w-full bg-[#00EBD5] hover:bg-[#00EBD5]/90 transition-colors text-black rounded-2xl py-3.5 px-5 flex items-center justify-between font-bold text-[14px]">
+                <button onClick={() => navigate('/assessments/create')} className="w-full bg-[#00EBD5] hover:bg-[#00EBD5]/90 transition-colors text-black rounded-2xl py-3.5 px-5 flex items-center justify-between font-bold text-[14px]">
                   <div className="flex items-center gap-3">
                     <PlusCircle className="w-5 h-5" />
                     Create Assessment
