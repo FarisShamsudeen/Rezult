@@ -49,5 +49,29 @@ export class RezulterRepository extends BaseRepository<IRezulter> implements IRe
       $addToSet: { candidateIds: candidateId }
     });
   }
+
+  
+  /**
+   * Fetch active members in the workspace of the rezulter
+   */
+  
+
+
+
+
+
+  // async fetchActiveMembersbyId(rezulterId: string | Types.ObjectId): Promise<void> {
+  //   return await Rezulter.aggregate([
+  //     {
+  //       $match: {
+  //         candidate
+  //       }
+  //     },
+  //     {
+  //       $project: 
+  //     }
+  //   ])
+  // }
+
 }
 

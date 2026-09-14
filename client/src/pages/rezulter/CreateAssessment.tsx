@@ -7,16 +7,82 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { SelectQuestionTypeModal } from '../../components/modals/SelectQuestionTypeModal';
 import { PremiumFeatureModal } from '../../components/modals/PremiumFeatureModal';
+import { assessmentService, CreateQuestionDTO, CreateAssessmentDTO } from '../../services/assessment.service';
 
 export function RezulterCreateAssessment() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'parameters' | 'question_bank' | 'preview'>('parameters');
   const [isQuestionTypeModalOpen, setIsQuestionTypeModalOpen] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState<CreateAssessmentDTO>({
+    title: 'Logic & Reasoning',
+    description: '',
+    durationInMinutes: 60,
+    passingThreshold: 75,
+    scheduledStartTime: new Date('2024-10-24T09:00:00'),
+    scheduledEndTime: new Date('2024-10-27T18:00:00'),
+    isQuestionsInOrder: false,
+    isImmediateResult: true,
+    isRestrictedOthers: true,
+    timezone: 'UTC',
+    questions: [
+      {
+        questionType: 'mcq',
+        questionText: 'In a microservices architecture, which component is primarily responsible for routing requests to the appropriate service instances and providing load balancing?',
+        maxMarks: 10,
+        displayOptions: [
+          { optText: 'Message Broker', isAnswer: false, optMark: 0 },
+          { optText: 'API Gateway', isAnswer: true, optMark: 10 },
+          { optText: 'Service Registry', isAnswer: false, optMark: 0 },
+          { optText: 'Reverse Proxy', isAnswer: false, optMark: 0 }
+        ]
+      },
+      {
+        questionType: 'one_word',
+        questionText: 'In a relational database, what is the term for a unique identifier for each record in a table?',
+        maxMarks: 10,
+        correctOneWordAnswer: 'PRIMARY KEY'
+      },
+      {
+        questionType: 'descriptive',
+        questionText: 'Discuss the strategies for ensuring scalability in a microservices architecture. How do load balancing and horizontal scaling play a role in maintaining performance under high traffic?',
+        maxMarks: 25
+      }
+    ]
+  });
 
   const handleAddQuestion = (type: string) => {
-    console.log('Selected question type:', type);
-    // Logic to add a new question goes here
+    const qType = type as 'mcq' | 'one_word' | 'descriptive';
+    const newQuestion: CreateQuestionDTO = {
+      questionType: qType,
+      questionText: `New ${qType} question`,
+      maxMarks: 10,
+      displayOptions: qType === 'mcq' ? [
+        { optText: 'Option A', isAnswer: true, optMark: 10 },
+        { optText: 'Option B', isAnswer: false, optMark: 0 }
+      ] : undefined,
+      correctOneWordAnswer: qType === 'one_word' ? 'Answer' : undefined
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      questions: [...prev.questions, newQuestion]
+    }));
+  };
+
+  const submitAssessment = async (plan?: string) => {
+    try {
+      setIsSubmitting(true);
+      await assessmentService.createAssessment(formData);
+      navigate('/assessments');
+    } catch (error) {
+      console.error('Failed to create assessment', error);
+      alert('Failed to create assessment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -95,7 +161,8 @@ export function RezulterCreateAssessment() {
                   </label>
                   <input 
                     type="text" 
-                    defaultValue="Logic & Reasoning"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     className="w-full bg-[#12181C] border border-white/5 text-white text-[14px] font-medium rounded-xl px-4 py-3.5 focus:outline-none focus:border-[#00EBD5]/50 transition-colors"
                   />
                 </div>
@@ -106,7 +173,8 @@ export function RezulterCreateAssessment() {
                   <div className="relative">
                     <input 
                       type="number" 
-                      defaultValue="75"
+                      value={formData.passingThreshold}
+                      onChange={(e) => setFormData(prev => ({ ...prev, passingThreshold: Number(e.target.value) }))}
                       className="w-full bg-[#12181C] border border-white/5 text-white text-[14px] font-medium rounded-xl px-4 py-3.5 focus:outline-none focus:border-[#00EBD5]/50 transition-colors"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 font-bold">%</span>
@@ -121,7 +189,8 @@ export function RezulterCreateAssessment() {
                 <div className="relative">
                   <input 
                     type="number" 
-                    defaultValue="60"
+                    value={formData.durationInMinutes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, durationInMinutes: Number(e.target.value) }))}
                     className="w-full bg-[#12181C] border border-white/5 text-white text-[14px] font-medium rounded-xl px-4 py-3.5 focus:outline-none focus:border-[#00EBD5]/50 transition-colors"
                   />
                   <div className="absolute right-1 top-1 bottom-1 bg-white/5 rounded-lg px-4 flex items-center justify-center">
@@ -194,39 +263,38 @@ export function RezulterCreateAssessment() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors">
+                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, isQuestionsInOrder: !prev.isQuestionsInOrder }))}>
                   <div>
                     <h4 className="text-white font-bold text-[14px]">Randomize Question Order</h4>
                     <p className="text-white/40 text-[12px] font-medium">Prevent candidates from sharing sequence answers.</p>
                   </div>
-                  <div className="w-10 h-5 bg-[#00EBD5] rounded-full relative cursor-pointer shrink-0">
-                    <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm"></div>
+                  <div className={`w-10 h-5 rounded-full relative shrink-0 transition-colors ${!formData.isQuestionsInOrder ? 'bg-[#00EBD5]' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full absolute top-0.5 shadow-sm transition-all ${!formData.isQuestionsInOrder ? 'bg-white right-0.5' : 'bg-white/50 left-0.5'}`}></div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors">
+                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, lockdownBrowser: !prev.lockdownBrowser }))}>
                   <div>
                     <h4 className="text-white font-bold text-[14px]">Lockdown Browser</h4>
                     <p className="text-white/40 text-[12px] font-medium">Restrict access to other tabs or applications.</p>
                   </div>
-                  <div className="w-10 h-5 bg-white/10 rounded-full relative cursor-pointer shrink-0">
-                    <div className="w-4 h-4 bg-white/50 rounded-full absolute top-0.5 left-0.5 shadow-sm"></div>
+                  <div className={`w-10 h-5 rounded-full relative shrink-0 transition-colors ${formData.lockdownBrowser ? 'bg-[#00EBD5]' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full absolute top-0.5 shadow-sm transition-all ${formData.lockdownBrowser ? 'bg-white right-0.5' : 'bg-white/50 left-0.5'}`}></div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors">
+                <div className="flex items-center justify-between p-4 hover:bg-white/5 rounded-2xl transition-colors cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, isImmediateResult: !prev.isImmediateResult }))}>
                   <div>
                     <h4 className="text-white font-bold text-[14px]">Immediate Results</h4>
                     <p className="text-white/40 text-[12px] font-medium">Show final score to candidate immediately after submission.</p>
                   </div>
-                  <div className="w-10 h-5 bg-[#00EBD5] rounded-full relative cursor-pointer shrink-0">
-                    <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm"></div>
+                  <div className={`w-10 h-5 rounded-full relative shrink-0 transition-colors ${formData.isImmediateResult ? 'bg-[#00EBD5]' : 'bg-white/10'}`}>
+                    <div className={`w-4 h-4 rounded-full absolute top-0.5 shadow-sm transition-all ${formData.isImmediateResult ? 'bg-white right-0.5' : 'bg-white/50 left-0.5'}`}></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Next Button for Parameters */}
             <div className="flex items-center justify-end mt-4">
               <button 
                 onClick={() => setActiveTab('question_bank')}
@@ -555,10 +623,11 @@ export function RezulterCreateAssessment() {
               </button>
               <button 
                 onClick={() => setIsPremiumModalOpen(true)}
-                className="bg-[#00EBD5] hover:brightness-110 text-black text-[15px] font-bold px-10 py-4 rounded-full flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(0,235,213,0.3)]"
+                disabled={isSubmitting}
+                className="bg-[#00EBD5] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-black text-[15px] font-bold px-10 py-4 rounded-full flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(0,235,213,0.3)]"
               >
-                Publish Assessment
-                <Rocket className="w-5 h-5" />
+                {isSubmitting ? 'Publishing...' : 'Publish Assessment'}
+                {!isSubmitting && <Rocket className="w-5 h-5" />}
               </button>
             </div>
 
@@ -577,8 +646,7 @@ export function RezulterCreateAssessment() {
         onClose={() => setIsPremiumModalOpen(false)}
         onContinue={(plan) => {
           console.log('Selected premium plan:', plan);
-          // Navigate to a checkout page or next step
-          // navigate('/assessments');
+          submitAssessment(plan);
         }}
       />
     </div>

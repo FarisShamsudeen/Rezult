@@ -31,5 +31,9 @@ export const ENDPOINTS = {
         BASE: '/test',
         PROTECTED: '/protected',
         REZULTER_ONLY: '/rezulter-only',
+    },
+    ASSESSMENTS: {
+        BASE: '/assessments',
+        ROOT: '/',
     }
 } as const;

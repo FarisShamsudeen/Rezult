@@ -8,6 +8,7 @@ import rezulterRoutes from './routes/rezulter.routes';
 import testRoutes from './routes/test.routes';
 import authRoutes from './routes/auth.routes';
 import candidateRoutes from './routes/candidate.routes';
+import assessmentRoutes from './routes/assessment.routes';
 import { StatusCode } from './enums';
 import { ENDPOINTS } from './constants/endpoints';
 
@@ -28,6 +29,7 @@ app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.REZULTERS.BASE}`, rezulterRoutes);
 app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.TEST.BASE}`, testRoutes);
 app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.AUTH.BASE}`, authRoutes);
 app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.CANDIDATES.BASE}`, candidateRoutes);
+app.use(`${ENDPOINTS.API_BASE}${ENDPOINTS.ASSESSMENTS.BASE}`, assessmentRoutes);
 
 // Health check route
 app.get(`${ENDPOINTS.API_BASE}${ENDPOINTS.HEALTH}`, (req, res) => {

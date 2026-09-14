@@ -1,6 +1,8 @@
 import { Types } from 'mongoose';
 import { ICandidate } from '../models/Candidate';
 import { IRezulter } from '../models/Rezulter';
+import { IAssessment } from '../models/Assessment';
+import { IQuestion } from '../models/Question';
 
 export interface IBaseRepository<T> {
   create(data: Partial<T>): Promise<T>;
@@ -23,4 +25,12 @@ export interface IOtpRepository {
   create(data: { email: string; otp: string; role: string; purpose: string }): Promise<any>;
   findValidOtp(email: string, otp: string, role: string, purpose: string): Promise<any | null>;
   delete(id: string): Promise<void>;
+}
+
+export interface IAssessmentRepository extends IBaseRepository<IAssessment> {
+  // Additional methods specific to Assessment
+}
+
+export interface IQuestionRepository extends IBaseRepository<IQuestion> {
+  insertMany(questions: Partial<IQuestion>[]): Promise<IQuestion[]>;
 }
