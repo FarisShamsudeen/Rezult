@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, ClipboardList, BarChart2, Search, Bell, Shield } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, ClipboardList, BarChart2, Shield } from 'lucide-react';
 
 export function SuperAdminLayout() {
   const navItems = [

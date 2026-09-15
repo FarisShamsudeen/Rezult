@@ -20,7 +20,7 @@ export const SwipeButton = ({ onSwipe }: { onSwipe?: () => void }) => {
     }
   }, []);
 
-  const handleDragEnd = (event: any, info: any) => {
+  const handleDragEnd = (_event: any, info: any) => {
     if (isSwiped) return;
 
     const threshold = dragConstraints.right * 0.7; // 70% to trigger

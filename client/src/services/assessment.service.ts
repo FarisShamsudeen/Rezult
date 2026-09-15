@@ -19,11 +19,13 @@ export interface CreateAssessmentDTO {
   title: string;
   description?: string;
   durationInMinutes: number;
+  passingThreshold?: number;
   scheduledStartTime?: Date;
   scheduledEndTime?: Date;
   isQuestionsInOrder?: boolean;
   isImmediateResult?: boolean;
   isRestrictedOthers?: boolean;
+  lockdownBrowser?: boolean;
   timezone?: string;
   questions: CreateQuestionDTO[];
 }
@@ -34,5 +36,3 @@ export const assessmentService = {
     return response.data;
   },
 };
-
-313953

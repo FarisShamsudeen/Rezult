@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, MoreVertical, Bell, Plus, Check, X, RefreshCw } from 'lucide-react';
+import { Search, MoreVertical, Bell, Plus, Check, RefreshCw } from 'lucide-react';
 import { rezulterService } from '../../services/rezulter.service';
 import type { Rezulter } from '../../services/rezulter.service';
 import { ToggleStatusModal } from '../../components/modals/ToggleStatusModal';

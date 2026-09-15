@@ -9,7 +9,6 @@ import {
 import { LogoutModal } from '../../components/modals/LogoutModal';
 
 export function RezulterDashboard() {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const activeExaminations = [

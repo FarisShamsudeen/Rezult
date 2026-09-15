@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Bell, Plus, Search, ChevronDown, Filter, 
-  Eye, Trash2, Link as LinkIcon, Sigma,
+  Sigma,
   ChevronLeft, ChevronRight, MoreHorizontal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

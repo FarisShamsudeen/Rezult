@@ -1,4 +1,4 @@
-import { Search, Bell, Activity } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 export function SuperAdminDashboard() {
   return (

@@ -95,14 +95,14 @@ export function SuperAdminReports() {
               <div
                 key={chat.id}
                 onClick={() => setActiveChat(chat.id)}
-                className={`p-5 rounded-2xl border cursor-pointer transition-all ${chat.isActive
+                className={`p-5 rounded-2xl border cursor-pointer transition-all ${chat.id === activeChat
                     ? 'bg-[#121A25] border-l-4 border-l-[#3B82F6] border-y-white/10 border-r-white/10 shadow-lg'
                     : 'bg-[#111827] border-white/5 hover:bg-white/[0.02]'
                   }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-white font-semibold text-[15px]">{chat.name}</h3>
-                  <span className={`text-[11px] font-medium ${chat.isActive ? 'text-gray-300' : 'text-gray-500'}`}>
+                  <span className={`text-[11px] font-medium ${chat.id === activeChat ? 'text-gray-300' : 'text-gray-500'}`}>
                     {chat.time}
                   </span>
                 </div>

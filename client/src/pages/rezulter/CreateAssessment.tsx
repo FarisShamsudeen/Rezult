@@ -7,7 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { SelectQuestionTypeModal } from '../../components/modals/SelectQuestionTypeModal';
 import { PremiumFeatureModal } from '../../components/modals/PremiumFeatureModal';
-import { assessmentService, CreateQuestionDTO, CreateAssessmentDTO } from '../../services/assessment.service';
+import { assessmentService, type CreateQuestionDTO, type CreateAssessmentDTO } from '../../services/assessment.service';
 
 export function RezulterCreateAssessment() {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ export function RezulterCreateAssessment() {
     }));
   };
 
-  const submitAssessment = async (plan?: string) => {
+  const submitAssessment = async (_plan?: string) => {
     try {
       setIsSubmitting(true);
       await assessmentService.createAssessment(formData);
