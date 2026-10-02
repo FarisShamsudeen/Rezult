@@ -13,29 +13,31 @@ export function Home() {
     <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center p-4 lg:p-8">
 
       {/* Outer App Container - Black with rounded corners */}
-      <div className="w-full max-w-[1400px] h-[90vh] min-h-[650px] bg-brand-bg rounded-[40px] overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/5">
+      <div className="w-full max-w-[1400px] h-[95vh] min-h-[600px] xl:h-[90vh] xl:min-h-[650px] bg-brand-bg rounded-[2rem] md:rounded-[40px] overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/5">
 
         {/* Left Sidebar Area */}
-        <div className="w-full md:w-[300px] pt-10 md:pt-12 md:pl-7 md:pr-0 md:pb-6 flex flex-col justify-between z-20 shrink-0">
+        <div className="w-full md:w-[300px] pt-8 md:pt-10 lg:pt-12 md:pl-7 md:pr-0 pb-8 md:pb-6 flex flex-col justify-between z-20 shrink-0">
 
           {/* Logo */}
-          <div className="flex-col items-center gap-4">
-            <div className="relative">
-              <img src="/rezult_logo.png" alt="Rezult Logo" className="w-[90%] h-[90%] object-fill" />
+          <div className="flex flex-col items-start gap-2 px-5 md:px-0">
+            <div className="relative w-28 md:w-36 lg:w-40 ml-2">
+              <img src="/rezult_logo.png" alt="Rezult Logo" className="w-full h-auto object-contain" />
             </div>
-            <span className="text-4xl font-bold font-orbitron tracking-[0.2em] text-white uppercase mt-2 ml-4 ">Rezult</span>
+            <span className="text-3xl md:text-4xl font-bold font-orbitron tracking-[0.2em] text-white uppercase mt-1 md:mt-2 ml-4">Rezult</span>
           </div>
 
           {/* Info Block */}
-          <div className="mt-15 px-5">
-            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-4">Built for Integrity</h3>
-            <p className="text-brand-text-secondary text-[13px] leading-relaxed max-w-[280px]">
+          <div className="my-auto py-8 md:py-0 px-5">
+            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-3 md:mb-4">Built for Integrity</h3>
+            <p className="text-brand-text-secondary text-xs md:text-[13px] leading-relaxed max-w-[280px]">
               Secure, reliable, and fair. We utilize advanced encryption and proctoring tools to ensure that every result is earned through merit and technical stability.
             </p>
           </div>
 
           {/* Bottom Action Pill */}
-          <SwipeButton />
+          <div className="px-5 md:px-0">
+            <SwipeButton />
+          </div>
         </div>
 
         {/* The Cutout Shape for the Pill */}
@@ -52,16 +54,16 @@ export function Home() {
         </div>
 
         {/* Main Hero Card (Gradient) */}
-        <div className="flex-1 bg-hero-gradient rounded-[40px] mt-6 mr-6 mb-6 ml-0 p-10 lg:p-16 flex flex-col justify-center relative overflow-hidden shadow-[-15px_0_40px_rgba(0,0,0,0.6)] z-0">
+        <div className="flex-1 bg-hero-gradient rounded-[2rem] md:rounded-[40px] mt-4 mr-4 mb-4 ml-4 md:mt-6 md:mr-6 md:mb-6 md:ml-0 p-8 md:p-10 lg:p-16 flex flex-col justify-center relative overflow-hidden shadow-[-15px_0_40px_rgba(0,0,0,0.6)] z-0">
 
-          <div className="relative z-10 max-w-4xl mt-auto mb-auto md:ml-10">
-            <h1 className="text-white font-orbitron font-bold text-5xl lg:text-[4.5rem] xl:text-[5.5rem] leading-[1.05] tracking-tight mb-8">
+          <div className="relative z-10 max-w-4xl mt-auto mb-auto md:ml-6 lg:ml-10">
+            <h1 className="text-white font-orbitron font-bold text-4xl md:text-5xl lg:text-[4rem] xl:text-[5.5rem] leading-[1.1] tracking-tight mb-6 lg:mb-8">
               Welcome<br />
               to the<br />
-              world of <span className="text-white font-black text-6xl lg:text-[5rem] xl:text-[6rem]">Assessments</span>
+              world of <span className="text-white font-black text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[6rem]">Assessments</span>
             </h1>
-            <p className="text-white/90 text-lg lg:text-[1.15rem] leading-[1.6] max-w-[700px] font-medium tracking-wide">
-              Allowing everybody interested in  a borderless evaluation system. Create, manage, and analyze MCQs, One-Word, and Descriptive answer questions from any device, anywhere.
+            <p className="text-white/90 text-base md:text-lg lg:text-[1.15rem] leading-[1.5] md:leading-[1.6] max-w-[700px] font-medium tracking-wide">
+              Allowing everybody interested in a borderless evaluation system. Create, manage, and analyze MCQs, One-Word, and Descriptive answer questions from any device, anywhere.
             </p>
           </div>
 

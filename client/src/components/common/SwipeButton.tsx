@@ -44,7 +44,7 @@ export const SwipeButton = ({ onSwipe }: { onSwipe?: () => void }) => {
   return (
     <div 
       ref={containerRef}
-      className="relative flex items-center bg-[#000000] border-[3px] border-white rounded-full p-1 w-[352px] h-[55px] z-30 overflow-hidden"
+      className="relative flex items-center bg-[#000000] border-[3px] border-white rounded-full p-1 w-full md:w-[352px] max-w-[352px] md:max-w-none h-[55px] z-30 overflow-hidden"
     >
       {/* Background fill that expands as you drag */}
       <motion.div 
@@ -67,14 +67,14 @@ export const SwipeButton = ({ onSwipe }: { onSwipe?: () => void }) => {
       </motion.div>
       
       {/* Hidden text to size the container properly */}
-      <span className="text-[11px] font-bold tracking-[0.15em] uppercase opacity-0 pointer-events-none pl-5 pr-10 select-none">
+      <span className="text-[10px] md:text-[11px] font-bold tracking-[0.1em] md:tracking-[0.15em] uppercase opacity-0 pointer-events-none pl-4 md:pl-5 pr-8 md:pr-10 select-none whitespace-nowrap">
         Swipe to Get Started / Join Now
       </span>
 
       {/* Visible text that fades out */}
       <motion.span 
         style={{ opacity }}
-        className="absolute left-[60px] text-white text-[11px] font-bold tracking-[0.15em] uppercase pointer-events-none select-none"
+        className="absolute left-[50px] md:left-[60px] text-white text-[10px] md:text-[11px] font-bold tracking-[0.1em] md:tracking-[0.15em] uppercase pointer-events-none select-none whitespace-nowrap"
       >
         {isSwiped ? 'Unlocked!' : 'Swipe to Get Started / Join Now'}
       </motion.span>

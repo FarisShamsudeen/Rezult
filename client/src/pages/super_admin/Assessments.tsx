@@ -64,39 +64,54 @@ export function SuperAdminAssessments() {
         </button>
       </div>
 
-      {/* Filters Toolbar */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
-        {/* Tabs */}
-        <div className="flex items-center gap-2 bg-[#161D27] p-1.5 rounded-xl border border-white/5 w-full lg:w-auto overflow-x-auto hide-scrollbar">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded-lg text-[13px] font-bold tracking-wider transition-colors shrink-0 ${
-                activeTab === tab
-                  ? 'bg-[#1C64F2] text-white'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+      {/* Modern Premium Toolbar */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between p-6 border-b border-white/5 gap-6 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent">
+        
+        {/* Left: Search */}
+        <div className="flex items-center gap-3 w-full xl:w-auto">
+          {/* Search */}
+          <div className="relative w-full sm:w-[320px] group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1C64F2]/20 to-[#00EBD5]/20 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity blur-md" />
+            <div className="relative flex items-center bg-[#161D27] border border-white/5 rounded-xl px-4 py-2.5 transition-all">
+              <Search className="w-4 h-4 text-gray-500 group-focus-within:text-[#1C64F2] transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search Assessments, IDs..." 
+                className="w-full bg-transparent border-none pl-3 text-sm text-white placeholder:text-gray-600 focus:outline-none"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Search & Date Range */}
-        <div className="flex items-center gap-4 w-full lg:w-auto">
-          <div className="relative w-full lg:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Search Assessments, IDs..." 
-              className="w-full bg-[#161D27] border border-white/5 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-[#1C64F2] transition-colors"
-            />
+        {/* Right: Filters & Sort */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+          
+          {/* Modern Segmented Tabs */}
+          <div className="flex items-center p-1 bg-[#161D27] border border-white/5 rounded-xl w-full sm:w-auto overflow-x-auto hide-scrollbar">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 rounded-lg text-[13px] font-bold tracking-wide transition-all whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'bg-gradient-to-r from-[#1C64F2] to-[#0055D4] text-white shadow-[0_0_15px_rgba(28,100,242,0.4)]'
+                    : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/5 bg-[#161D27] text-gray-400 text-sm font-medium hover:text-white hover:border-white/10 transition-colors shrink-0">
-            <Filter className="w-4 h-4" />
-            Date Range
+
+          <div className="hidden sm:block w-px h-8 bg-white/5"></div>
+
+          <button className="flex items-center justify-between gap-2 w-full sm:w-auto shrink-0 bg-[#161D27] border border-white/5 hover:border-white/10 rounded-xl px-4 py-2.5 text-sm text-gray-300 font-medium transition-all shadow-sm">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="truncate">Date Range</span>
+            </div>
           </button>
+
         </div>
       </div>
 
