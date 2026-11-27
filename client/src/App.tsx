@@ -10,6 +10,8 @@ import { Docs } from './pages/Docs';
 // Candidate imports
 import { CandidateDashboard, CandidateLayout } from './pages/candidate/Dashboard';
 import { Assessments as CandidateAssessments } from './pages/candidate/Assessments';
+import { TakeAssessment } from './pages/candidate/TakeAssessment';
+import { AssessmentResult } from './pages/candidate/AssessmentResult';
 import { Rezulters as CandidateRezulters } from './pages/candidate/Rezulters';
 import { Calendar as CandidateCalendar } from './pages/candidate/Calendar';
 import { Concerns as CandidateConcerns } from './pages/candidate/Concerns';
@@ -18,6 +20,7 @@ import { CandidateProfile } from './pages/candidate/Profile';
 // Rezulter imports
 import { RezulterDashboard, RezulterLayout } from './pages/rezulter/Dashboard';
 import { RezulterAssessments } from './pages/rezulter/Assessments';
+import { RezulterAssessmentDetails } from './pages/rezulter/AssessmentDetails';
 import { RezulterCreateAssessment } from './pages/rezulter/CreateAssessment';
 import { RezulterCandidates } from './pages/rezulter/Candidates';
 import { RezulterHelpAndSupport } from './pages/rezulter/HelpAndSupport';
@@ -159,6 +162,9 @@ function App() {
               {/* Note: We currently load Candidate-specific subpages into the router for all roles as a fallback. 
                   In the future, we will separate these completely. */}
               <Route path="/assessments" element={<PageTransition><RoleBasedAssessments /></PageTransition>} />
+              <Route path="/assessments/:id" element={<PageTransition><RezulterAssessmentDetails /></PageTransition>} />
+              <Route path="/assessments/:id/take" element={<PageTransition><TakeAssessment /></PageTransition>} />
+              <Route path="/assessments/:id/result" element={<PageTransition><AssessmentResult /></PageTransition>} />
               <Route path="/assessments/create" element={<PageTransition><RoleBasedCreateAssessment /></PageTransition>} />
               <Route path="/rezulters" element={<PageTransition><CandidateRezulters /></PageTransition>} />
               <Route path="/calendar" element={<PageTransition><CandidateCalendar /></PageTransition>} />

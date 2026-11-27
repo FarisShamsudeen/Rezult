@@ -10,4 +10,8 @@ export class QuestionRepository extends BaseRepository<IQuestion> implements IQu
   async insertMany(questions: Partial<IQuestion>[]): Promise<IQuestion[]> {
     return await this.model.insertMany(questions) as unknown as IQuestion[];
   }
+
+  async findByAssessmentId(assessmentId: string): Promise<IQuestion[]> {
+    return await this.model.find({ assessmentId });
+  }
 }

@@ -50,6 +50,13 @@ export class RezulterRepository extends BaseRepository<IRezulter> implements IRe
     });
   }
 
+  /**
+   * Finds all Rezulters whose workspace includes the given candidate
+   */
+  async findByCandidateId(candidateId: string | Types.ObjectId): Promise<IRezulter[]> {
+    return await Rezulter.find({ candidateIds: candidateId }).select('_id');
+  }
+
   
   /**
    * Fetch active members in the workspace of the rezulter
