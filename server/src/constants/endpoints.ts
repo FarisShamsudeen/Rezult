@@ -23,7 +23,6 @@ export const ENDPOINTS = {
     REZULTERS: {
         BASE: '/rezulters',
         ROOT: '/',
-        REGISTER: '/register',
         STATS: '/stats',
         TOGGLE_STATUS: '/:id/toggle-status',
     },

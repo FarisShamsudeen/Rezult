@@ -4,6 +4,7 @@ import { CandidateResponseDTO, RezulterResponseDTO } from '../dtos/user.dto';
 export interface IAuthResponse {
   token?: string;
   refreshToken?: string;
+  resetToken?: string;
   user?: CandidateResponseDTO | RezulterResponseDTO;
   message?: string;
 }
@@ -19,9 +20,10 @@ export interface IAuthService {
   login(role: UserRole, email: string, password: string): Promise<IAuthResponse>;
   googleAuth(role: UserRole, credential: string): Promise<IAuthResponse>;
   forgotPassword(role: UserRole, email: string): Promise<IAuthResponse>;
-  resetPassword(role: UserRole, email: string, newPassword: string): Promise<IAuthResponse>;
+  resetPassword(role: UserRole, email: string, newPassword: string, resetToken: string): Promise<IAuthResponse>;
   resendOTP(role: UserRole, email: string, purpose: OtpPurpose): Promise<IAuthResponse>;
   refreshAccessToken(refreshToken: string): Promise<IAuthResponse>;
+  checkUserActiveStatus(id: string, role: string): Promise<boolean>;
 }
 
 export interface ICandidateService {

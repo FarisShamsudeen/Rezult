@@ -131,7 +131,7 @@ export class AuthController {
   resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = resetPasswordSchema.parse(req.body);
-      const result = await this.#authService.resetPassword(data.role, (data.email as string), data.newPassword);
+      const result = await this.#authService.resetPassword(data.role, (data.email as string), data.newPassword, data.resetToken);
       sendResponse(res, StatusCode.OK, true, result);
     } catch (error: unknown) {
       if (error instanceof z.ZodError) {

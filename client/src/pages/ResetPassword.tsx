@@ -11,6 +11,7 @@ export function ResetPassword({ role }: ResetPasswordProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const email = location.state?.email || '';
+  const resetToken = location.state?.resetToken || '';
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,10 +20,10 @@ export function ResetPassword({ role }: ResetPasswordProps) {
 
   useEffect(() => {
     document.title = 'Rezult - Reset Password';
-    if (!email) {
+    if (!email || !resetToken) {
       navigate(`/${role}/forgot-password`);
     }
-  }, [email, navigate, role]);
+  }, [email, resetToken, navigate, role]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +35,7 @@ export function ResetPassword({ role }: ResetPasswordProps) {
     setError('');
 
     try {
-      await authService.resetPassword({ email, newPassword: password, role });
+      await authService.resetPassword({ email, newPassword: password, role, resetToken });
       navigate('/login', { state: { message: 'Password reset successful. Please login.' } });
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to reset password');
