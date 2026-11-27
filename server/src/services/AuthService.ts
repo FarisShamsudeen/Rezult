@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
 import { ICandidateRepository, IRezulterRepository } from '../interfaces/repositories';
 import { IAuthService, IOtpService } from '../interfaces/services';
 import { UserRole, AuthProvider, OtpPurpose } from '../enums';
@@ -8,14 +7,25 @@ import { mapToCandidateDTO, mapToRezulterDTO } from '../dtos/user.dto';
 import { ICandidate } from '../models/Candidate';
 import { IRezulter } from '../models/Rezulter';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback_access_secret';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret';
+const getJwtAccessSecret = (): string => {
+  const secret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_ACCESS_SECRET is not configured');
+  }
+  return secret;
+};
 
+const getJwtRefreshSecret = (): string => {
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret) {
+    throw new Error('JWT_REFRESH_SECRET is not configured');
+  }
+  return secret;
+};
 
 const generateTokens = (user: Record<string, unknown> | import("mongoose").Document, role: string) => {
-  const accessToken = jwt.sign({ id: user._id, role }, JWT_ACCESS_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: user._id, role }, JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const accessToken = jwt.sign({ id: user._id, role }, getJwtAccessSecret(), { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ id: user._id, role }, getJwtRefreshSecret(), { expiresIn: '7d' });
   return { accessToken, refreshToken };
 };
 
@@ -101,6 +111,15 @@ export class AuthService implements IAuthService {
       const { accessToken, refreshToken } = generateTokens(user, role);
       const userDTO = role === UserRole.CANDIDATE ? mapToCandidateDTO(user as ICandidate) : mapToRezulterDTO(user as IRezulter);
       return { token: accessToken, refreshToken, user: userDTO };
+    }
+
+    if (purpose === OtpPurpose.FORGOT_PASSWORD) {
+      const resetToken = jwt.sign(
+        { email: user.email.toLowerCase(), role, purpose: 'password_reset' },
+        getJwtAccessSecret(),
+        { expiresIn: '10m' }
+      );
+      return { message: 'OTP verified successfully', resetToken };
     }
     
     return { message: 'OTP verified successfully' };
@@ -229,11 +248,23 @@ export class AuthService implements IAuthService {
     return { message: 'Password reset OTP sent to email' };
   }
 
-  async resetPassword(role: UserRole, email: string, newPassword: string) {
-    // Note: ensure OTP was verified before this in actual flow, or just verify OTP again here if passed together.
-    // Assuming the user verified OTP, and then we just reset.
-    // Alternatively, the frontend sends email & newPassword after verifying OTP.
-    // For security, it's better to pass a resetToken that was given during verifyOTP, but we can trust the flow or send OTP here too.
+  async resetPassword(role: UserRole, email: string, newPassword: string, resetToken: string) {
+    let decoded: jwt.JwtPayload | string;
+    try {
+      decoded = jwt.verify(resetToken, getJwtAccessSecret());
+    } catch {
+      throw new Error('Invalid or expired password reset session. Please request a new OTP.');
+    }
+
+    if (
+      typeof decoded === 'string' ||
+      decoded.purpose !== 'password_reset' ||
+      decoded.email !== email.toLowerCase() ||
+      decoded.role !== role
+    ) {
+      throw new Error('Invalid password reset token');
+    }
+
     const Repository = role === UserRole.CANDIDATE ? this.#candidateRepository : this.#rezulterRepository;
     const user = await Repository.findByEmail(email);
 
@@ -254,7 +285,7 @@ export class AuthService implements IAuthService {
 
     let decoded: import("jsonwebtoken").JwtPayload | string;
     try {
-      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+      decoded = jwt.verify(refreshToken, getJwtRefreshSecret());
     } catch (err) {
       throw new Error('Invalid or expired refresh token');
     }

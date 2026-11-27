@@ -44,5 +44,6 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   email: z.string().email(),
   newPassword: z.string().min(6),
-  role: roleSchema
+  role: roleSchema,
+  resetToken: z.string().min(1, 'Reset token is required')
 });

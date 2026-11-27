@@ -1,6 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Search, Bell } from 'lucide-react';
+import { superAdminService, type DashboardStats } from '../../services/superAdmin.service';
 
 export function SuperAdminDashboard() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      const response = await superAdminService.getDashboardStats();
+      if (response && response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
@@ -35,7 +58,7 @@ export function SuperAdminDashboard() {
             <div className="relative z-10">
               <h3 className="text-gray-400 text-sm font-medium mb-2">Total Rezulters</h3>
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-white tracking-tight">1,248</span>
+                <span className="text-4xl font-bold text-white tracking-tight">{isLoading ? '...' : stats?.totalRezulters ?? 0}</span>
                 <span className="text-[#00F2FE] text-sm font-medium">~12%</span>
               </div>
             </div>
@@ -50,7 +73,7 @@ export function SuperAdminDashboard() {
             <div className="relative z-10">
               <h3 className="text-gray-400 text-sm font-medium mb-2">Total Candidates</h3>
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-white tracking-tight">84.2k</span>
+                <span className="text-4xl font-bold text-white tracking-tight">{isLoading ? '...' : stats?.totalCandidates ?? 0}</span>
                 <span className="text-[#00F2FE] text-sm font-medium">~8%</span>
               </div>
             </div>
@@ -65,7 +88,7 @@ export function SuperAdminDashboard() {
             <div className="relative z-10">
               <h3 className="text-gray-400 text-sm font-medium mb-2">Total Assessments</h3>
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-white tracking-tight">3,902</span>
+                <span className="text-4xl font-bold text-white tracking-tight">{isLoading ? '...' : stats?.totalAssessments ?? 0}</span>
                 <span className="text-gray-500 text-sm font-medium">This month</span>
               </div>
             </div>
@@ -101,58 +124,38 @@ export function SuperAdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                
-                <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 font-medium text-[15px]">Q3 Advanced Certification</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-400 text-[15px]">Tech Global Univ</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 text-[15px]">1,204</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="inline-flex items-center px-3 py-1 rounded bg-[#00F2FE]/10 text-[#00F2FE] text-xs font-bold border border-[#00F2FE]/20 tracking-wide">
-                      IN PROGRESS
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 font-medium text-[15px]">Midterm - CompSci 101</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-400 text-[15px]">State College</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 text-[15px]">450</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="inline-flex items-center px-3 py-1 rounded bg-[#00F2FE]/10 text-[#00F2FE] text-xs font-bold border border-[#00F2FE]/20 tracking-wide">
-                      IN PROGRESS
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 font-medium text-[15px]">Security Fundamentals V2</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-400 text-[15px]">CyberSec Institute</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="text-gray-300 text-[15px]">89</span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="inline-flex items-center px-3 py-1 rounded bg-[#FFA900]/10 text-[#FFA900] text-xs font-bold border border-[#FFA900]/20 tracking-wide">
-                      STARTING SOON
-                    </span>
-                  </td>
-                </tr>
-
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      Loading live assessments...
+                    </td>
+                  </tr>
+                ) : (!stats?.liveAssessments || stats.liveAssessments.length === 0) ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      No live assessments at the moment.
+                    </td>
+                  </tr>
+                ) : (
+                  stats.liveAssessments.map((assessment) => (
+                    <tr key={assessment.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-6 py-5">
+                        <span className="text-gray-300 font-medium text-[15px]">{assessment.name}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-gray-400 text-[15px]">{assessment.rezulterName}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-gray-300 text-[15px]">{assessment.activeUsers}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center px-3 py-1 rounded bg-[#00F2FE]/10 text-[#00F2FE] text-xs font-bold border border-[#00F2FE]/20 tracking-wide uppercase">
+                          {assessment.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

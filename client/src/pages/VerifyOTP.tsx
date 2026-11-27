@@ -105,7 +105,9 @@ export function VerifyOTP({ role }: VerifyOTPProps) {
         login(response.data.user, response.data.token);
         navigate('/'); // redirect to dashboard
       } else if (purpose === 'forgot_password') {
-        navigate(`/${role}/reset-password`, { state: { email, otp: otpCode } });
+        navigate(`/${role}/reset-password`, {
+          state: { email, resetToken: response.data?.resetToken }
+        });
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Verification failed');
