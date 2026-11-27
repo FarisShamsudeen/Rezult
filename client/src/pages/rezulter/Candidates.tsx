@@ -1,59 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Bell, Plus, Search, ChevronDown, Filter, 
-  MoreVertical, ChevronLeft, ChevronRight, MoreHorizontal
+  MoreVertical, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { candidateService } from '../../services/candidate.service';
 
 export function RezulterCandidates() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0, currentPage: 1 });
 
-  const candidates = [
-    {
-      id: '#C-1024',
-      name: 'Eleanor Pena',
-      email: 'eleanor.pena@example.com',
-      joinDate: 'Oct 24, 2023',
-      joinTime: '09:12 AM',
-      assessments: 12,
-      status: 'Active',
-    },
-    {
-      id: '#C-1025',
-      name: 'Cameron Williamson',
-      email: 'cameron.w@example.com',
-      joinDate: 'Oct 22, 2023',
-      joinTime: '02:45 PM',
-      assessments: 4,
-      status: 'Pending',
-    },
-    {
-      id: '#C-1026',
-      name: 'Brooklyn Simmons',
-      email: 'brooklyn.s@example.com',
-      joinDate: 'Oct 18, 2023',
-      joinTime: '11:00 AM',
-      assessments: 8,
-      status: 'Active',
-    },
-    {
-      id: '#C-1027',
-      name: 'Leslie Alexander',
-      email: 'leslie.alex@example.com',
-      joinDate: 'Oct 15, 2023',
-      joinTime: '10:30 AM',
-      assessments: 0,
-      status: 'Inactive',
-    },
-    {
-      id: '#C-1028',
-      name: 'Guy Hawkins',
-      email: 'guy.hawkins@example.com',
-      joinDate: 'Oct 10, 2023',
-      joinTime: '04:15 PM',
-      assessments: 15,
-      status: 'Active',
-    },
-  ];
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchCandidates();
+  }, [page, limit, debouncedSearch]);
+
+  const fetchCandidates = async () => {
+    try {
+      setIsLoading(true);
+      const response = await candidateService.getRezulterCandidates({
+        page,
+        limit,
+        search: debouncedSearch
+      });
+      if (response && response.success) {
+        setCandidates(response.data.data || []);
+        setPagination(response.data.pagination || { totalPages: 1, totalItems: 0, currentPage: 1 });
+      }
+    } catch (error) {
+      console.error('Failed to fetch candidates:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -157,63 +149,72 @@ export function RezulterCandidates() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {candidates.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-white/[0.02] transition-colors group">
-                  {/* Name Column */}
-                  <td className="py-5 px-4">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[14px] font-bold text-white group-hover:text-[#00EBD5] transition-colors">
-                        {candidate.name}
-                      </span>
-                      <span className="text-[12px] text-white/40 font-medium">
-                        ID: {candidate.id}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Email Column */}
-                  <td className="py-5 px-4">
-                    <span className="text-[14px] font-medium text-[#73A5C6] group-hover:text-[#8BBDE0] transition-colors">
-                      {candidate.email}
-                    </span>
-                  </td>
-
-                  {/* Date Column */}
-                  <td className="py-5 px-4">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[14px] font-medium text-[#73A5C6] group-hover:text-[#8BBDE0] transition-colors">
-                        {candidate.joinDate.split(', ')[0]},<br />
-                        {candidate.joinDate.split(', ')[1]}
-                      </span>
-                      <span className="text-[12px] text-white/40 font-medium">
-                        {candidate.joinTime}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Assessments Column */}
-                  <td className="py-5 px-4 text-center">
-                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] font-bold text-[13px]">
-                      {candidate.assessments}
-                    </div>
-                  </td>
-
-                  {/* Status Column */}
-                  <td className="py-5 px-4">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-bold ${getStatusStyles(candidate.status)}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(candidate.status)}`}></span>
-                      {candidate.status}
-                    </span>
-                  </td>
-
-                  {/* Actions Column */}
-                  <td className="py-5 px-4 text-right">
-                    <button className="text-white/30 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/5">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </td>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">Loading candidates...</td>
                 </tr>
-              ))}
+              ) : candidates.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">No candidates found.</td>
+                </tr>
+              ) : (
+                candidates.map((candidate) => (
+                  <tr key={candidate.id} className="hover:bg-white/[0.02] transition-colors group">
+                    {/* Name Column */}
+                    <td className="py-5 px-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[14px] font-bold text-white group-hover:text-[#00EBD5] transition-colors">
+                          {candidate.name}
+                        </span>
+                        <span className="text-[12px] text-white/40 font-medium">
+                          ID: {candidate.id.substring(0, 8)}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Email Column */}
+                    <td className="py-5 px-4">
+                      <span className="text-[14px] font-medium text-[#73A5C6] group-hover:text-[#8BBDE0] transition-colors">
+                        {candidate.email}
+                      </span>
+                    </td>
+
+                    {/* Date Column */}
+                    <td className="py-5 px-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[14px] font-medium text-[#73A5C6] group-hover:text-[#8BBDE0] transition-colors">
+                          {new Date(candidate.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-[12px] text-white/40 font-medium">
+                          {new Date(candidate.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Assessments Column */}
+                    <td className="py-5 px-4 text-center">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] font-bold text-[13px]">
+                        {0} {/* Placeholder for completed assessments count */}
+                      </div>
+                    </td>
+
+                    {/* Status Column */}
+                    <td className="py-5 px-4">
+                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-bold ${getStatusStyles(candidate.isActive ? 'Active' : 'Inactive')}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(candidate.isActive ? 'Active' : 'Inactive')}`}></span>
+                        {candidate.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+
+                    {/* Actions Column */}
+                    <td className="py-5 px-4 text-right">
+                      <button className="text-white/30 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/5">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -221,29 +222,25 @@ export function RezulterCandidates() {
         {/* Pagination */}
         <div className="mt-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5">
           <span className="text-[13px] text-white/40 font-medium">
-            Showing 1 to 5 of 124 results
+            Showing {candidates.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination.totalItems)} of {pagination.totalItems} results
           </span>
           
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#00EBD5] text-[#00EBD5] font-bold text-[13px]">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              2
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              3
-            </button>
-            <div className="w-8 h-8 flex items-center justify-center text-white/40">
-              <MoreHorizontal className="w-4 h-4" />
-            </div>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              8
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors">
+            <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#00EBD5] text-[#00EBD5] font-bold text-[13px]">
+              {page}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+              disabled={page >= pagination.totalPages}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

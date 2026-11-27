@@ -4,6 +4,8 @@ import { ICandidateService } from '../interfaces/services';
 import { ICandidate } from '../models/Candidate';
 import { AuthProvider } from '../enums';
 import { mapToCandidateDTO } from '../dtos/user.dto';
+import { Rezulter } from '../models/Rezulter';
+import { Types } from 'mongoose';
 
 export class CandidateService implements ICandidateService {
   #candidateRepository: ICandidateRepository;
@@ -16,6 +18,22 @@ export class CandidateService implements ICandidateService {
 
   async getAllCandidates(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }) {
     const result = await this.#candidateRepository.findAll(options);
+    return {
+      data: result.data.map((candidate) => mapToCandidateDTO(candidate)),
+      pagination: result.pagination
+    };
+  }
+
+  async getAllCandidatesByRezulter(rezulterId: string, options: { page: number; limit: number; search: string }) {
+    const rezulter = await Rezulter.findById(rezulterId);
+    if (!rezulter) throw new Error('Rezulter not found');
+
+    const candidateIds = rezulter.candidateIds || [];
+    
+    // We can use the BaseRepository findAll by passing a baseQuery with _id $in
+    const baseQuery = { _id: { $in: candidateIds } };
+    const result = await this.#candidateRepository.findAll(options, baseQuery);
+    
     return {
       data: result.data.map((candidate) => mapToCandidateDTO(candidate)),
       pagination: result.pagination

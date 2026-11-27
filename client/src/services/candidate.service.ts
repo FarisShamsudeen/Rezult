@@ -28,5 +28,10 @@ export const candidateService = {
   getStats: async () => {
     const response = await api.get('/candidates/stats');
     return response.data;
+  },
+
+  getRezulterCandidates: async (params?: { page?: number; limit?: number; search?: string }) => {
+    const response = await api.get('/candidates/rezulter', { params });
+    return response.data;
   }
 };

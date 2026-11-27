@@ -33,6 +33,25 @@ export class CandidateController {
     }
   }
 
+  getAllByRezulter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const user = (req as any).user;
+      if (!user || !user.id) {
+        sendResponse(res, StatusCode.UNAUTHORIZED, false, null, 'Unauthorized');
+        return;
+      }
+
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
+      const search = (req.query.search as string) || '';
+
+      const result = await (this.#candidateService as any).getAllCandidatesByRezulter(user.id, { page, limit, search });
+      sendResponse(res, StatusCode.OK, true, result);
+    } catch (error: unknown) {
+      next(error);
+    }
+  }
+
   createCandidate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const validatedData = candidateSchema.parse(req.body);

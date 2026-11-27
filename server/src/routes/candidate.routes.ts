@@ -21,4 +21,7 @@ router.get(ENDPOINTS.CANDIDATES.ROOT, authMiddleware, ensureActiveUser, requireR
 router.post(ENDPOINTS.CANDIDATES.ROOT, authMiddleware, ensureActiveUser, requireRole(UserRole.SUPER_ADMIN), candidateController.createCandidate);
 router.patch(ENDPOINTS.CANDIDATES.TOGGLE_STATUS, authMiddleware, ensureActiveUser, requireRole(UserRole.SUPER_ADMIN), candidateController.toggleStatus);
 
+// Rezulter routes
+router.get('/rezulter', authMiddleware, ensureActiveUser, requireRole(UserRole.REZULTER), candidateController.getAllByRezulter);
+
 export default router;
