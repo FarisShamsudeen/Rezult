@@ -31,6 +31,10 @@ export const ENDPOINTS = {
         PROTECTED: '/protected',
         REZULTER_ONLY: '/rezulter-only',
     },
+    SUPER_ADMIN: {
+        BASE: '/super-admin',
+        DASHBOARD: '/dashboard',
+    },
     ASSESSMENTS: {
         BASE: '/assessments',
         ROOT: '/',
