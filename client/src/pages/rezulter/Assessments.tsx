@@ -1,62 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Bell, Plus, Search, ChevronDown, Filter, 
   Sigma,
-  ChevronLeft, ChevronRight, MoreHorizontal
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { assessmentService } from '../../services/assessment.service';
 
 export function RezulterAssessments() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [assessments, setAssessments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0, currentPage: 1 });
 
-  const assessments = [
-    {
-      id: 1,
-      name: 'Calculus 201 - Midterm',
-      department: 'Mathematics',
-      status: 'Draft',
-      date: 'Oct 24, 2023',
-      time: '09:00 AM - 12:00 PM',
-      attendees: 200,
-    },
-    {
-      id: 2,
-      name: 'Calculus 201 - Midterm',
-      department: 'Mathematics',
-      status: 'Active',
-      date: 'Oct 24, 2023',
-      time: '09:00 AM - 12:00 PM',
-      attendees: 200,
-    },
-    {
-      id: 3,
-      name: 'Calculus 201 - Midterm',
-      department: 'Mathematics',
-      status: 'Active',
-      date: 'Oct 24, 2023',
-      time: '09:00 AM - 12:00 PM',
-      attendees: 200,
-    },
-    {
-      id: 4,
-      name: 'Calculus 201 - Midterm',
-      department: 'Mathematics',
-      status: 'Active',
-      date: 'Oct 24, 2023',
-      time: '09:00 AM - 12:00 PM',
-      attendees: 200,
-    },
-    {
-      id: 5,
-      name: 'Calculus 201 - Midterm',
-      department: 'Mathematics',
-      status: 'Active',
-      date: 'Oct 24, 2023',
-      time: '09:00 AM - 12:00 PM',
-      attendees: 200,
-    },
-  ];
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchAssessments();
+  }, [page, limit, debouncedSearch]);
+
+  const fetchAssessments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await assessmentService.getAllAssessments({
+        page,
+        limit,
+        search: debouncedSearch
+      });
+      if (response && response.success) {
+        setAssessments(response.data.data || []);
+        setPagination(response.data.pagination || { totalPages: 1, totalItems: 0, currentPage: 1 });
+      }
+    } catch (error) {
+      console.error('Failed to fetch assessments:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-[1400px] mx-auto h-full overflow-y-auto pr-2 custom-scrollbar pb-8">
@@ -133,71 +124,84 @@ export function RezulterAssessments() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {assessments.map((assessment) => (
-                <tr key={assessment.id} className="hover:bg-white/[0.02] transition-colors group">
-                  {/* Name Column */}
-                  <td className="py-5 px-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#E8F0FE] flex items-center justify-center shrink-0">
-                        <Sigma className="w-5 h-5 text-[#1A73E8]" />
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">Loading assessments...</td>
+                </tr>
+              ) : assessments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">No assessments found.</td>
+                </tr>
+              ) : (
+                assessments.map((assessment) => (
+                  <tr key={assessment._id} className="hover:bg-white/[0.02] transition-colors group">
+                    {/* Name Column */}
+                    <td className="py-5 px-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#E8F0FE] flex items-center justify-center shrink-0">
+                          <Sigma className="w-5 h-5 text-[#1A73E8]" />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[14px] font-bold text-white group-hover:text-[#00EBD5] transition-colors">
+                            {assessment.title}
+                          </span>
+                          <span className="text-[12px] text-white/40 font-medium">
+                            Duration: {assessment.durationInMinutes} mins
+                          </span>
+                        </div>
                       </div>
+                    </td>
+
+                    {/* Status Column */}
+                    <td className="py-5 px-4">
+                      <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[12px] font-bold uppercase ${assessment.status === 'active' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-[#FFF8E1] text-[#F57F17]'}`}>
+                        {assessment.status}
+                      </span>
+                    </td>
+
+                    {/* Date Column */}
+                    <td className="py-5 px-4">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[14px] font-bold text-white group-hover:text-[#00EBD5] transition-colors">
-                          {assessment.name}
+                        <span className="text-[14px] font-medium text-white/80">
+                          {assessment.scheduledStartTime ? new Date(assessment.scheduledStartTime).toLocaleDateString() : 'TBD'}
                         </span>
                         <span className="text-[12px] text-white/40 font-medium">
-                          Department: {assessment.department}
+                          {assessment.scheduledStartTime ? new Date(assessment.scheduledStartTime).toLocaleTimeString() : 'TBD'}
                         </span>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Status Column */}
-                  <td className="py-5 px-4">
-                    <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[12px] font-bold bg-[#E8F5E9] text-[#2E7D32]">
-                      {assessment.status}
-                    </span>
-                  </td>
-
-                  {/* Date Column */}
-                  <td className="py-5 px-4">
-                    <div className="flex flex-col gap-0.5">
+                    {/* Attendees Column */}
+                    <td className="py-5 px-4">
                       <span className="text-[14px] font-medium text-white/80">
-                        {assessment.date}
+                        {assessment.attendeesCount ?? 0}
                       </span>
-                      <span className="text-[12px] text-white/40 font-medium">
-                        {assessment.time}
-                      </span>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Attendees Column */}
-                  <td className="py-5 px-4">
-                    <span className="text-[14px] font-medium text-white/80">
-                      {assessment.attendees}
-                    </span>
-                  </td>
-
-                  {/* Actions Column */}
-                  <td className="py-5 px-4">
-                    <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-60 lg:group-hover:opacity-100 transition-opacity">
-                      <button className="bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors">
-                        View
-                      </button>
-                      
-                      {assessment.status === 'Draft' ? (
-                        <button className="bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
-                          Delete
+                    {/* Actions Column */}
+                    <td className="py-5 px-4">
+                      <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-60 lg:group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => navigate(`/assessments/${assessment._id}`)}
+                          className="bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors"
+                        >
+                          View
                         </button>
-                      ) : (
-                        <button className="bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors flex items-center gap-2">
-                          Copy Link
+                        
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(assessment.inviteToken);
+                            alert(`Exam code copied: ${assessment.inviteToken}`);
+                          }}
+                          className="bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
+                        >
+                          Copy Code
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -205,29 +209,25 @@ export function RezulterAssessments() {
         {/* Pagination */}
         <div className="mt-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5">
           <span className="text-[13px] text-white/40 font-medium">
-            Showing 1 to 5 of 124 results
+            Showing {assessments.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination.totalItems)} of {pagination.totalItems} results
           </span>
           
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#00EBD5] text-[#00EBD5] font-bold text-[13px]">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              2
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              3
-            </button>
-            <div className="w-8 h-8 flex items-center justify-center text-white/40">
-              <MoreHorizontal className="w-4 h-4" />
-            </div>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-white/60 hover:text-white hover:bg-white/5 transition-colors font-medium text-[13px]">
-              8
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors">
+            <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#00EBD5] text-[#00EBD5] font-bold text-[13px]">
+              {page}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+              disabled={page >= pagination.totalPages}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/5 text-white/40 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

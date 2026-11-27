@@ -8,7 +8,10 @@ export interface IBaseRepository<T> {
   create(data: Partial<T>): Promise<T>;
   findByEmail(email: string): Promise<T | null>;
   findById(id: string): Promise<T | null>;
-  findAll(options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: T[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
+  findAll(
+    options: { page: number; limit: number; search: string; isActive?: boolean; sortField?: string; sortOrder?: 'asc' | 'desc' },
+    baseQuery?: Record<string, unknown>
+  ): Promise<{ data: T[]; pagination: { totalItems: number; totalPages: number; currentPage: number; pageSize: number } }>;
   toggleStatus(id: string): Promise<T | null>;
   getStats(): Promise<{ total: number; active: number; suspended: number }>;
 }
@@ -33,4 +36,5 @@ export interface IAssessmentRepository extends IBaseRepository<IAssessment> {
 
 export interface IQuestionRepository extends IBaseRepository<IQuestion> {
   insertMany(questions: Partial<IQuestion>[]): Promise<IQuestion[]>;
+  findByAssessmentId(assessmentId: string): Promise<IQuestion[]>;
 }
